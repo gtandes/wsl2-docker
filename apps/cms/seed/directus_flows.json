@@ -1,0 +1,16 @@
+[
+	{
+		"id": "e0a8d099-cc64-49b0-8f12-03e3fead20f4",
+		"name": "Test",
+		"icon": "bolt",
+		"color": null,
+		"description": null,
+		"status": "active",
+		"trigger": "schedule",
+		"accountability": "all",
+		"options": {
+			"cron": "0 * * * * *"
+		},
+		"operation": "682ed07b-4d92-4b61-8fc9-6ffe3584883a"
+	}
+]

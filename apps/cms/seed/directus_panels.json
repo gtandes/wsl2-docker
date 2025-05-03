@@ -1,0 +1,437 @@
+[
+	{
+		"id": "27da5891-970a-49b0-be14-ce4833ef4dbf",
+		"dashboard": "1c68adfa-5f9f-43d9-a42b-dbd7ebd19917",
+		"name": "Total Modules Taken",
+		"icon": "library_add_check",
+		"color": "#3399FF",
+		"show_header": true,
+		"note": null,
+		"type": "metric",
+		"position_x": 17,
+		"position_y": 29,
+		"width": 15,
+		"height": 10,
+		"options": {
+			"collection": "junction_modules_definition_directus_users",
+			"sortField": null,
+			"field": "id",
+			"function": "count",
+			"filter": {
+				"_and": [
+					{
+						"status": {
+							"_eq": "FINISHED"
+						}
+					},
+					{
+						"assigned_on": {
+							"_gt": "{{ period_from }}"
+						}
+					},
+					{
+						"assigned_on": {
+							"_lt": "{{ period_to }}"
+						}
+					},
+					{
+						"agency": {
+							"id": {
+								"_in": "{{ tenants }}"
+							}
+						}
+					}
+				]
+			}
+		}
+	},
+	{
+		"id": "2f937959-fdb5-4755-b0e7-dd076b51523f",
+		"dashboard": "1c68adfa-5f9f-43d9-a42b-dbd7ebd19917",
+		"name": "To",
+		"icon": "date_range",
+		"color": null,
+		"show_header": true,
+		"note": null,
+		"type": "variable",
+		"position_x": 26,
+		"position_y": 1,
+		"width": 22,
+		"height": 6,
+		"options": {
+			"field": "period_to",
+			"type": "timestamp",
+			"inter": "datetime",
+			"defaultValue": "2023-12-31T12:00:00-03:00",
+			"options": {}
+		}
+	},
+	{
+		"id": "398fd875-1602-47eb-a4bf-c545ca7f13de",
+		"dashboard": "1c68adfa-5f9f-43d9-a42b-dbd7ebd19917",
+		"name": "Avg Score",
+		"icon": "avg_pace",
+		"color": "#3399FF",
+		"show_header": true,
+		"note": null,
+		"type": "metric",
+		"position_x": 1,
+		"position_y": 51,
+		"width": 15,
+		"height": 10,
+		"options": {
+			"collection": "junction_modules_definition_directus_users",
+			"sortField": null,
+			"field": "score",
+			"function": "avg",
+			"filter": {
+				"_and": [
+					{
+						"status": {
+							"_eq": "FINISHED"
+						}
+					},
+					{
+						"assigned_on": {
+							"_gt": "{{ period_from }}"
+						}
+					},
+					{
+						"assigned_on": {
+							"_lt": "{{ period_to }}"
+						}
+					},
+					{
+						"agency": {
+							"id": {
+								"_in": "{{ tenants }}"
+							}
+						}
+					}
+				]
+			}
+		}
+	},
+	{
+		"id": "39c5433d-d1b0-4c33-b3f7-98c43f6814a4",
+		"dashboard": "1c68adfa-5f9f-43d9-a42b-dbd7ebd19917",
+		"name": "Finished Modules",
+		"icon": "clock_loader_90",
+		"color": "#2ECDA7",
+		"show_header": true,
+		"note": null,
+		"type": "metric",
+		"position_x": 33,
+		"position_y": 40,
+		"width": 15,
+		"height": 10,
+		"options": {
+			"collection": "junction_modules_definition_directus_users",
+			"sortField": "id",
+			"limit": 10,
+			"filter": {
+				"_and": [
+					{
+						"status": {
+							"_eq": "FINISHED"
+						}
+					},
+					{
+						"assigned_on": {
+							"_gt": "{{ period_from }}"
+						}
+					},
+					{
+						"assigned_on": {
+							"_lt": "{{ period_to }}"
+						}
+					},
+					{
+						"agency": {
+							"id": {
+								"_in": "{{ tenants }}"
+							}
+						}
+					}
+				]
+			},
+			"field": "id",
+			"function": "count"
+		}
+	},
+	{
+		"id": "3bab0ce4-3269-49a5-b79d-e51886019437",
+		"dashboard": "1c68adfa-5f9f-43d9-a42b-dbd7ebd19917",
+		"name": "Avg Attempts Used",
+		"icon": "radio_button_checked",
+		"color": "#6644FF",
+		"show_header": true,
+		"note": null,
+		"type": "metric",
+		"position_x": 33,
+		"position_y": 51,
+		"width": 15,
+		"height": 10,
+		"options": {
+			"collection": "junction_modules_definition_directus_users",
+			"sortField": null,
+			"field": "attempts_used",
+			"function": "sum",
+			"filter": {
+				"_and": [
+					{
+						"assigned_on": {
+							"_gt": "{{ period_from }}"
+						}
+					},
+					{
+						"assigned_on": {
+							"_lt": "{{ period_to }}"
+						}
+					},
+					{
+						"agency": {
+							"id": {
+								"_in": "{{ tenants }}"
+							}
+						}
+					}
+				]
+			}
+		}
+	},
+	{
+		"id": "47daef0d-6de9-44c4-91fc-2bd80e12532c",
+		"dashboard": "1c68adfa-5f9f-43d9-a42b-dbd7ebd19917",
+		"name": "From",
+		"icon": "date_range",
+		"color": null,
+		"show_header": true,
+		"note": null,
+		"type": "variable",
+		"position_x": 1,
+		"position_y": 1,
+		"width": 22,
+		"height": 6,
+		"options": {
+			"field": "period_from",
+			"type": "timestamp",
+			"inter": "datetime",
+			"defaultValue": "2023-11-01T12:00:00-03:00",
+			"options": {}
+		}
+	},
+	{
+		"id": "5ea56b8c-b86b-472b-9a6b-616d525011ed",
+		"dashboard": "1c68adfa-5f9f-43d9-a42b-dbd7ebd19917",
+		"name": "Pending Modules",
+		"icon": "clock_loader_10",
+		"color": "#FFC23B",
+		"show_header": true,
+		"note": null,
+		"type": "metric",
+		"position_x": 1,
+		"position_y": 40,
+		"width": 15,
+		"height": 10,
+		"options": {
+			"collection": "junction_modules_definition_directus_users",
+			"sortField": "id",
+			"limit": 10,
+			"filter": {
+				"_and": [
+					{
+						"status": {
+							"_eq": "PENDING"
+						}
+					},
+					{
+						"assigned_on": {
+							"_gt": "{{ period_from }}"
+						}
+					},
+					{
+						"assigned_on": {
+							"_lt": "{{ period_to }}"
+						}
+					},
+					{
+						"agency": {
+							"id": {
+								"_in": "{{ tenants }}"
+							}
+						}
+					}
+				]
+			},
+			"field": "id",
+			"function": "count"
+		}
+	},
+	{
+		"id": "7c556746-d149-4276-ba3b-816e59b49978",
+		"dashboard": "1c68adfa-5f9f-43d9-a42b-dbd7ebd19917",
+		"name": "Total Failed Modules",
+		"icon": "playlist_add_check_circle",
+		"color": "#E35169",
+		"show_header": true,
+		"note": null,
+		"type": "metric",
+		"position_x": 33,
+		"position_y": 29,
+		"width": 15,
+		"height": 10,
+		"options": {
+			"collection": "junction_modules_definition_directus_users",
+			"sortField": "id",
+			"field": "id",
+			"function": "count",
+			"filter": {
+				"_and": [
+					{
+						"approved": {
+							"_eq": false
+						}
+					},
+					{
+						"assigned_on": {
+							"_gt": "{{ period_from }}"
+						}
+					},
+					{
+						"assigned_on": {
+							"_lt": "{{ period_to }}"
+						}
+					},
+					{
+						"agency": {
+							"id": {
+								"_in": "{{ tenants }}"
+							}
+						}
+					}
+				]
+			}
+		}
+	},
+	{
+		"id": "db57f944-5cbe-49b5-837a-27c2dec2aa70",
+		"dashboard": "1c68adfa-5f9f-43d9-a42b-dbd7ebd19917",
+		"name": "Started Modules",
+		"icon": "clock_loader_40",
+		"color": "#3399FF",
+		"show_header": true,
+		"note": null,
+		"type": "metric",
+		"position_x": 17,
+		"position_y": 40,
+		"width": 15,
+		"height": 10,
+		"options": {
+			"collection": "junction_modules_definition_directus_users",
+			"sortField": "id",
+			"limit": 10,
+			"filter": {
+				"_and": [
+					{
+						"status": {
+							"_eq": "STARTED"
+						}
+					},
+					{
+						"assigned_on": {
+							"_gt": "{{ period_from }}"
+						}
+					},
+					{
+						"assigned_on": {
+							"_lt": "{{ period_to }}"
+						}
+					},
+					{
+						"agency": {
+							"id": {
+								"_in": "{{ tenants }}"
+							}
+						}
+					}
+				]
+			},
+			"field": "id",
+			"function": "count"
+		}
+	},
+	{
+		"id": "dd6a56ee-c6f8-446d-8327-4016d2861115",
+		"dashboard": "1c68adfa-5f9f-43d9-a42b-dbd7ebd19917",
+		"name": "Tenants",
+		"icon": "account_balance",
+		"color": null,
+		"show_header": true,
+		"note": null,
+		"type": "relational-variable",
+		"position_x": 1,
+		"position_y": 8,
+		"width": 47,
+		"height": 20,
+		"options": {
+			"field": "tenants",
+			"collection": "agencies",
+			"displayTemplate": "{{name}}",
+			"filter": null,
+			"multiple": true,
+			"limit": 100
+		}
+	},
+	{
+		"id": "f8a90817-3bdd-415a-b036-545ac0269c3b",
+		"dashboard": "1c68adfa-5f9f-43d9-a42b-dbd7ebd19917",
+		"name": "Total Passed Modules",
+		"icon": "playlist_add_check_circle",
+		"color": "#2ECDA7",
+		"show_header": true,
+		"note": null,
+		"type": "metric",
+		"position_x": 1,
+		"position_y": 29,
+		"width": 15,
+		"height": 10,
+		"options": {
+			"collection": "junction_modules_definition_directus_users",
+			"sortField": "id",
+			"field": "id",
+			"function": "count",
+			"filter": {
+				"_and": [
+					{
+						"started_on": {
+							"_nnull": true
+						}
+					},
+					{
+						"assigned_on": {
+							"_gt": "{{ period_from }}"
+						}
+					},
+					{
+						"assigned_on": {
+							"_lt": "{{ period_to }}"
+						}
+					},
+					{
+						"agency": {
+							"id": {
+								"_in": "{{ tenants }}"
+							}
+						}
+					},
+					{
+						"approved": {
+							"_eq": true
+						}
+					}
+				]
+			}
+		}
+	}
+]

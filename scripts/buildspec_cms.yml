@@ -1,0 +1,33 @@
+version: 0.2
+
+phases:
+  pre_build:
+    commands:
+      - REPO_URI=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$REPO_NAME
+      - cp .env.$IMAGE_TAG .env
+      - sed -i "s|\[DB_PASSWORD\]|$DB_PASSWORD|g" .env
+      - sed -i "s|\[S3_ACCESS_ID_KEY\]|$S3_ACCESS_ID_KEY|g" .env
+      - sed -i "s|\[S3_SECRET_ACCESS_KEY\]|$S3_SECRET_ACCESS_KEY|g" .env
+      - sed -i "s|\[SECRET\]|$SECRET|g" .env
+      - sed -i "s|\[FONTAWESOME\]|$FONTAWESOME|g" .env
+      - sed -i "s|\[MIGR_PASS\]|$MIGR_PASS|g" .env
+      - aws s3 cp .env s3://$BUCKET/.env
+  build:
+    commands:
+      - echo Logging in to Docker Hub...
+      - docker login --username $DOCKER_HUB_USER --password $DOCKER_HUB_PASS
+      - echo Build started on `date`
+      - echo Building the CMS Docker image...          
+      - docker build -f ./apps/cms/Dockerfile --progress=plain -t $REPO_NAME:$IMAGE_TAG .
+      - docker tag $REPO_NAME:$IMAGE_TAG $REPO_URI:$IMAGE_TAG
+  post_build:
+    commands:
+      - echo Build completed on `date`
+      - echo Logging in to Amazon ECR...
+      - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
+      - echo Pushing the CMS Docker image...
+      - docker push $REPO_URI:$IMAGE_TAG
+      - printf '[{"name":"directus","imageUri":"%s"}]' $REPO_URI:$IMAGE_TAG > cmsimagedef.json
+artifacts:
+  files:
+      - cmsimagedef.json

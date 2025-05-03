@@ -1,0 +1,16 @@
+[
+	{
+		"id": "682ed07b-4d92-4b61-8fc9-6ffe3584883a",
+		"name": "Log to Console",
+		"key": "log_to_console",
+		"type": "log",
+		"position_x": 19,
+		"position_y": 1,
+		"options": {
+			"message": "Directus is running!"
+		},
+		"resolve": null,
+		"reject": null,
+		"flow": "e0a8d099-cc64-49b0-8f12-03e3fead20f4"
+	}
+]

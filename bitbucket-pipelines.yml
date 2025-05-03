@@ -1,0 +1,12 @@
+pipelines:
+  branches:
+    migration:
+      - step:
+          name: Deploy to MIGRATION
+          script:
+            - echo "Deploying to migration environment"
+            - pipe: atlassian/ssh-run:0.2.2
+              variables:
+                SSH_USER: deploybot
+                SERVER: 54.212.88.16
+                COMMAND: ~/server-scripts/deployment/deploy-v2.sh $BITBUCKET_REPO_SLUG $BITBUCKET_BRANCH $DB_PASS_DEMO $CMS_SECRET_DEMO $FA_TOKEN

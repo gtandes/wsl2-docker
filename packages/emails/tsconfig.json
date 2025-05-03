@@ -1,0 +1,34 @@
+{
+  "ts-node": {
+    // ts-node automated configuration using commonjs
+    "compilerOptions": {
+      "module": "CommonJS"
+    }
+  },
+  "compilerOptions": {
+    "target": "ES2019",
+    "lib": ["ES2019", "DOM", "DOM.Iterable"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "noFallthroughCasesInSwitch": true,
+    "module": "esnext",
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "strictNullChecks": false,
+    "isolatedModules": false,
+    "allowUnreachableCode": true,
+    "noImplicitAny": false,
+    "noEmit": false,
+    "outDir": "dist",
+    "jsx": "react",
+    "paths": {
+      "react": ["./node_modules/@types/react"]
+    }
+  },
+  "typeAcquisition": { "enable": true },
+  "exclude": ["**/node_modules/**", "**/tmp/**", "**/build/**", "**/dist/**"]
+}

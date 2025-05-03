@@ -1,0 +1,107 @@
+module.exports = function (env) {
+  const publicUrl = `${env.PUBLIC_URL}/cms/`;
+  const isLocal = env.PUBLIC_URL ? env.PUBLIC_URL.includes("localhost") : false;
+
+  const dbConfig = {
+    DB_CLIENT: "pg",
+    DB_HOST: env.DB_HOST,
+    DB_PORT: env.DB_PORT,
+    DB_DATABASE: env.DB_DATABASE,
+    DB_USER: env.DB_USER,
+    DB_PASSWORD: env.DB_PASSWORD,
+    DB_SSL: env.DB_SSL,
+    DB_POOL__MIN: 0,
+    DB_POOL__MAX: env.DB_POOL__MAX || 30,
+    ...(env.DB_POOL__ACQUIRE_TIMEOUT_MILLIS && {
+      DB_POOL__ACQUIRE_TIMEOUT_MILLIS: env.DB_POOL__ACQUIRE_TIMEOUT_MILLIS,
+    }),
+    ...(env.DB_POOL__CREATE_TIMEOUT_MILLIS && { DB_POOL__CREATE_TIMEOUT_MILLIS: env.DB_POOL__CREATE_TIMEOUT_MILLIS }),
+    ...(env.DB_POOL__IDLE_TIMEOUT_MILLIS && { DB_POOL__IDLE_TIMEOUT_MILLIS: env.DB_POOL__IDLE_TIMEOUT_MILLIS }),
+    ...(env.DB_POOL__REAP_INTERVAL_MILLIS && { DB_POOL__REAP_INTERVAL_MILLIS: env.DB_POOL__REAP_INTERVAL_MILLIS }),
+    ...(env.DB_POOL__CREATE_RETRY_INTERVAL_MILLIS && {
+      DB_POOL__CREATE_RETRY_INTERVAL_MILLIS: env.DB_POOL__CREATE_RETRY_INTERVAL_MILLIS,
+    }),
+  };
+
+  const dataMigrationDBConfig = {
+    DATA_MIGRATION_DB_HOST: env.DATA_MIGRATION_DB_HOST,
+    DATA_MIGRATION_DB_PORT: env.DATA_MIGRATION_DB_PORT,
+    DATA_MIGRATION_DB_USER: env.DATA_MIGRATION_DB_USER,
+    DATA_MIGRATION_DB_NAME: env.DATA_MIGRATION_DB_NAME,
+    DATA_MIGRATION_DB_PASSWORD: env.DATA_MIGRATION_DB_PASSWORD,
+  };
+
+  const rateLimiterConfig = {
+    RATE_LIMITER_ENABLED: false,
+    RATE_LIMITER_GLOBAL_ENABLED: false,
+    PRESSURE_LIMITER_ENABLED: false,
+  };
+
+  const storageConfig = {
+    STORAGE_LOCATIONS: "local",
+    STORAGE_LOCAL_DRIVER: "s3",
+    STORAGE_LOCAL_ROOT: "",
+    STORAGE_LOCAL_BUCKET: env.STORAGE_LOCAL_BUCKET,
+    STORAGE_LOCAL_REGION: env.STORAGE_LOCAL_REGION,
+    STORAGE_LOCAL_KEY: env.STORAGE_LOCAL_KEY,
+    STORAGE_LOCAL_SECRET: env.STORAGE_LOCAL_SECRET,
+    S3_CERTIFICATE_BUCKET_NAME: env.S3_CERTIFICATE_BUCKET_NAME,
+    // S3_ACCESS_ID_KEY: env.S3_ACCESS_ID_KEY,
+    // S3_SECRET_ACCESS_KEY: env.S3_SECRET_ACCESS_KEY
+  };
+
+  let redisConfig = {};
+  if (env.REDIS) {
+    redisConfig = {
+      REDIS: env.REDIS,
+      SYNCHRONIZATION_STORE: "redis",
+    };
+  }
+
+  return {
+    LOG_LEVEL: env.LOG_LEVEL || "info",
+    HOST: "0.0.0.0",
+    PORT: env.CMS_PORT,
+    PUBLIC_URL: publicUrl,
+    WEB_URL: env.PUBLIC_URL,
+    ...dbConfig,
+    ...redisConfig,
+    SERVER_KEEP_ALIVE_TIMEOUT: 150000,
+    CACHE_ENABLED: false,
+    CACHE_STORE: "memory",
+    CACHE_SYSTEM_TTL: "1h",
+    ASSETS_CACHE_TTL: "30m",
+    ...storageConfig,
+    FILES_MAX_UPLOAD_SIZE: "200mb",
+    ASSETS_TRANSFORM_IMAGE_MAX_DIMENSION: "48000",
+    KEY: env.KEY,
+    SECRET: env.SECRET,
+    ACCESS_TOKEN_TTL: env.ACCESS_TOKEN_TTL || "15m",
+    REFRESH_TOKEN_TTL: env.REFRESH_TOKEN_TTL || "7d",
+    REFRESH_TOKEN_COOKIE_SECURE: env.REFRESH_TOKEN_COOKIE_SECURE || false,
+    REFRESH_TOKEN_COOKIE_SAME_SITE: env.REFRESH_TOKEN_COOKIE_SAME_SITE || "lax",
+    REFRESH_TOKEN_COOKIE_DOMAIN: env.REFRESH_TOKEN_COOKIE_DOMAIN || undefined,
+    REFRESH_TOKEN_COOKIE_NAME: "directus_refresh_token",
+    CORS_ENABLED: true,
+    CORS_ORIGIN: true,
+    CORS_METHODS: "GET,POST,PATCH,DELETE",
+    CORS_ALLOWED_HEADERS: "Content-Type,Authorization",
+    CORS_EXPOSED_HEADERS: "Content-Range",
+    CORS_CREDENTIALS: true,
+    CORS_MAX_AGE: 18000,
+    AUTH_PROVIDERS: "",
+    EXTENSIONS_PATH: "./extensions",
+    EXTENSIONS_AUTO_RELOAD: isLocal,
+    EMAIL_FROM: env.EMAIL_FROM || "no-reply@germinateapps.com",
+    EMAIL_TESTING: env.EMAIL_TESTING || undefined,
+    EMAIL_TRANSPORT: env.EMAIL_TRANSPORT || "sendmail",
+    EMAIL_SES_REGION: "us-west-2",
+    EMAIL_SENDMAIL_NEW_LINE: "unix",
+    EMAIL_SENDMAIL_PATH: "/usr/sbin/sendmail",
+    PASSWORD_RESET_URL_ALLOW_LIST: env.PASSWORD_RESET_URL_ALLOW_LIST,
+    WEBSOCKETS_ENABLED: true,
+    TELEMETRY: false,
+    ...dataMigrationDBConfig,
+    ...rateLimiterConfig,
+  };
+};

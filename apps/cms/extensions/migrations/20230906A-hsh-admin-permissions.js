@@ -1,0 +1,131 @@
+function permission(collection, action, permissions = {}, validation = {}, fields = "*", presets = null) {
+  return {
+    role: "cc987fae-dbb9-4d72-8199-21243fa13c92",
+    collection,
+    action,
+    permissions,
+    validation,
+    presets,
+    fields,
+  };
+}
+
+const permissions = [
+  // Agencies
+  permission("agencies", "create"),
+  permission("agencies", "read"),
+  permission("agencies", "update"),
+  permission("junction_directus_users_agencies", "create"),
+  permission("junction_directus_users_agencies", "delete"),
+  permission("junction_directus_users_agencies", "read"),
+  permission("junction_directus_users_agencies", "update"),
+
+  // Categories
+  permission("categories", "create"),
+  permission("categories", "read"),
+  permission("categories", "update"),
+
+  // Documents
+  permission("documents", "create"),
+  permission("documents", "update"),
+  permission("documents", "read"),
+  permission("junction_documents_agencies", "create"),
+  permission("junction_documents_agencies", "delete"),
+  permission("junction_documents_agencies", "read"),
+  permission("junction_documents_agencies", "update"),
+  permission("junction_documents_categories", "create"),
+  permission("junction_documents_categories", "delete"),
+  permission("junction_documents_categories", "read"),
+  permission("junction_documents_categories", "update"),
+  permission("junction_directus_users_documents", "create"),
+  permission("junction_directus_users_documents", "read"),
+  permission("junction_directus_users_documents", "update"),
+  permission("junction_directus_users_documents", "delete"),
+
+  // Exams
+  permission("exams", "create"),
+  permission("exams", "read"),
+  permission("exams", "update"),
+  permission("exam_versions", "create"),
+  permission("exam_versions", "read"),
+  permission("exam_versions", "update"),
+  permission("exam_results", "create"),
+  permission("exam_results", "read"),
+  permission("exam_results", "update"),
+  permission("question_versions", "create"),
+  permission("question_versions", "read"),
+  permission("question_versions", "update"),
+  permission("questions", "create"),
+  permission("questions", "read"),
+  permission("questions", "update"),
+  permission("junction_exams_categories_subspecialties", "create"),
+  permission("junction_exams_categories_subspecialties", "delete"),
+  permission("junction_exams_categories_subspecialties", "read"),
+  permission("junction_exams_categories_subspecialties", "update"),
+  permission("junction_directus_users_exams", "create"),
+  permission("junction_directus_users_exams", "delete"),
+  permission("junction_directus_users_exams", "read"),
+  permission("junction_directus_users_exams", "update"),
+  permission("junction_exam_versions_questions", "create"),
+  permission("junction_exam_versions_questions", "delete"),
+  permission("junction_exam_versions_questions", "read"),
+  permission("junction_exam_versions_questions", "update"),
+  permission("junction_exams_agencies", "create"),
+  permission("junction_exams_agencies", "delete"),
+  permission("junction_exams_agencies", "read"),
+  permission("junction_exams_agencies", "update"),
+  permission("junction_exams_categories_specialties", "create"),
+  permission("junction_exams_categories_specialties", "delete"),
+  permission("junction_exams_categories_specialties", "read"),
+  permission("junction_exams_categories_specialties", "update"),
+  permission("junction_exam_versions_questions", "create"),
+  permission("junction_exam_versions_questions", "delete"),
+  permission("junction_exam_versions_questions", "read"),
+  permission("junction_exam_versions_questions", "update"),
+
+  // Policies
+  permission("policies", "create"),
+  permission("policies", "update"),
+  permission("policies", "read"),
+  permission("junction_policies_agencies", "create"),
+  permission("junction_policies_agencies", "read"),
+  permission("junction_policies_agencies", "delete"),
+  permission("junction_policies_agencies", "update"),
+  permission("junction_policies_categories", "create"),
+  permission("junction_policies_categories", "read"),
+  permission("junction_policies_categories", "update"),
+  permission("junction_policies_categories", "delete"),
+
+  // Skills checklists
+  permission("sc_definitions", "create"),
+  permission("sc_definitions", "read"),
+  permission("sc_definitions", "update"),
+  permission("sc_versions", "create"),
+  permission("sc_versions", "read"),
+  permission("sc_versions", "update"),
+  permission("junction_sc_definitions_agencies", "read"),
+  permission("junction_sc_definitions_agencies", "update"),
+  permission("junction_sc_definitions_agencies", "delete"),
+  permission("junction_sc_definitions_directus_users", "read"),
+  permission("junction_sc_definitions_directus_users", "update"),
+  permission("junction_sc_definitions_directus_users", "delete"),
+
+  // Directus
+  permission("directus_files", "create"),
+  permission("directus_files", "read"),
+  permission("directus_files", "update"),
+  permission("directus_folders", "create"),
+  permission("directus_folders", "read"),
+  permission("directus_folders", "update"),
+  permission("directus_roles", "read"),
+  permission("directus_users", "create"),
+  permission("directus_users", "read"),
+  permission("directus_users", "update"),
+];
+
+module.exports = {
+  async up(knex) {
+    await knex("directus_permissions").insert(permissions);
+  },
+  async down(knex) {},
+};

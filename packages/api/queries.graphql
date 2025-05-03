@@ -1,0 +1,4759 @@
+######################## Users ########################
+
+fragment User on directus_users {
+  id
+  first_name
+  last_name
+  email
+  role {
+    id
+    name
+  }
+  status
+  last_access
+  agencies {
+    agencies_id {
+      id
+      custom_allowed_attempts_exams
+    }
+    employee_number
+    specialties {
+      specialties_id {
+        id
+      }
+    }
+    locations {
+      locations_id {
+        id
+      }
+    }
+    departments {
+      departments_id {
+        id
+      }
+    }
+  }
+  exams {
+    id
+    exams_id {
+      id
+      exam_versions {
+        id
+        title
+      }
+    }
+  }
+  sc_definitions {
+    sc_definitions_id {
+      id
+      title
+    }
+    id
+  }
+  modules {
+    id
+    modules_definition_id {
+      ...ModuleDefinition
+    }
+    module_version {
+      id
+    }
+  }
+  phone
+  address_line_1
+  address_line_2
+  city
+  state
+  zip
+}
+
+fragment UserForAssignment on directus_users {
+  id
+  first_name
+  last_name
+  email
+  role {
+    id
+  }
+  agencies {
+    agencies_id {
+      id
+    }
+    status
+  }
+}
+
+fragment UserForReports on directus_users {
+  id
+  first_name
+  last_name
+  email
+  last_access
+  status
+  agencies {
+    agencies_id {
+      id
+      custom_allowed_attempts_exams
+    }
+    status
+    specialties {
+      specialties_id {
+        id
+        name
+      }
+    }
+    locations {
+      locations_id {
+        id
+        name
+      }
+    }
+    departments {
+      departments_id {
+        id
+        name
+      }
+    }
+    supervisors {
+      directus_users_id {
+        id
+        first_name
+        last_name
+      }
+    }
+  }
+  exams(filter: { exams_id: { status: { _neq: "archived" } }, status: { _neq: "archived" } }) {
+    id
+    status
+    exams_id {
+      title
+    }
+    assigned_on
+    due_date
+    expires_on
+  }
+  sc_definitions(filter: { sc_definitions_id: { status: { _neq: "archived" } }, status: { _neq: "archived" } }) {
+    id
+    status
+    sc_definitions_id {
+      title
+    }
+    assigned_on
+    due_date
+    expires_on
+  }
+  modules(filter: { modules_definition_id: { status: { _neq: "archived" } }, status: { _neq: "archived" } }) {
+    id
+    status
+    modules_definition_id {
+      title
+    }
+    assigned_on
+    due_date
+    expires_on
+  }
+  documents(filter: { documents_id: { status: { _neq: "archived" } }, status: { _neq: "archived" } }) {
+    id
+    read
+    documents_id {
+      title
+    }
+    due_date
+    expires_on
+    assigned_on
+  }
+  policies(filter: { policies_id: { status: { _neq: "archived" } }, status: { _neq: "archived" } }) {
+    id
+    signed_on
+    policies_id {
+      name
+    }
+    expires_on
+    assigned_on
+    due_date
+  }
+}
+
+fragment UserForComplianceSummary on directus_users {
+  id
+  first_name
+  last_name
+  agencies {
+    id
+    specialties {
+      specialties_id {
+        id
+        name
+      }
+    }
+    locations {
+      locations_id {
+        id
+        name
+      }
+    }
+    departments {
+      departments_id {
+        id
+        name
+      }
+    }
+    agencies_id {
+      id
+      name
+    }
+    supervisors {
+      directus_users_id {
+        id
+        first_name
+        last_name
+      }
+    }
+  }
+  email
+  exams {
+    id
+    status
+    allowed_attempts
+    attempts_used
+    due_date
+    expires_on
+    assigned_on
+    status
+    exams_id {
+      title
+    }
+    agency {
+      id
+    }
+  }
+  sc_definitions {
+    id
+    status
+    expires_on
+    assigned_on
+    status
+    due_date
+    sc_definitions_id {
+      title
+    }
+    agency {
+      id
+    }
+  }
+  modules {
+    id
+    status
+    allowed_attempts
+    attempts_used
+    assigned_on
+    expires_on
+    due_date
+    modules_definition_id {
+      title
+    }
+    agency {
+      id
+    }
+  }
+  documents {
+    id
+    read
+    documents_id {
+      title
+    }
+    due_date
+    expires_on
+    assigned_on
+    status
+    agency {
+      id
+    }
+  }
+  policies {
+    id
+    signed_on
+    status
+    expires_on
+    assigned_on
+    due_date
+    policies_id {
+      name
+    }
+    agency {
+      id
+    }
+  }
+}
+
+query sysUsersForComplianceSummary(
+  $completedAssignmentsFilter: directus_users_filter
+  $incompletedAssignmentsFilter: directus_users_filter
+  $noLoginFilters: directus_users_filter
+  $allAttemptsUsedFilters: directus_users_filter
+) {
+  cliniciansWithCompletedAssignments: users(sort: "last_access", filter: $completedAssignmentsFilter) {
+    ...UserForComplianceSummary
+  }
+  cliniciansWithIncompletedAssignments: users(sort: "last_access", filter: $incompletedAssignmentsFilter) {
+    ...UserForComplianceSummary
+  }
+  assignmentsAwaitingUserLogin: users(sort: "last_access", filter: $noLoginFilters) {
+    ...UserForComplianceSummary
+  }
+  allAttemptsUsed: users(sort: "last_access", filter: $allAttemptsUsedFilters) {
+    id
+    first_name
+    last_name
+    agencies {
+      id
+      specialties {
+        specialties_id {
+          id
+          name
+        }
+      }
+      locations {
+        locations_id {
+          id
+          name
+        }
+      }
+      departments {
+        departments_id {
+          id
+          name
+        }
+      }
+      agencies_id {
+        id
+        name
+      }
+      supervisors {
+        directus_users_id {
+          id
+          first_name
+          last_name
+        }
+      }
+    }
+    email
+    exams(filter: { status: { _eq: "FAILED" } }) {
+      id
+      status
+      allowed_attempts
+      attempts_used
+      due_date
+      expires_on
+      assigned_on
+      status
+      exams_id {
+        title
+      }
+      agency {
+        id
+      }
+    }
+    modules(filter: { status: { _eq: "FINISHED" }, approved: { _eq: false } }) {
+      id
+      status
+      allowed_attempts
+      attempts_used
+      assigned_on
+      expires_on
+      due_date
+      modules_definition_id {
+        title
+      }
+      agency {
+        id
+      }
+    }
+  }
+}
+
+query sysUserForCreation($email: String!) {
+  users(filter: { email: { _istarts_with: $email } }) {
+    id
+    email
+    role {
+      id
+    }
+    agencies {
+      agencies_id {
+        name
+        id
+      }
+    }
+  }
+}
+
+query sysUser($id: String!) {
+  users(filter: { id: { _eq: $id } }) {
+    id
+    first_name
+    last_name
+    email
+    role {
+      id
+      name
+    }
+  }
+}
+
+fragment sysUsersTableFragment on directus_users {
+  id
+  first_name
+  last_name
+  email
+  role {
+    id
+    name
+  }
+  agencies {
+    id
+    bullhorn_id
+    status
+    agencies_id {
+      id
+      name
+    }
+    specialties {
+      specialties_id {
+        id
+        name
+      }
+    }
+    locations {
+      locations_id {
+        id
+        name
+      }
+    }
+    departments {
+      departments_id {
+        id
+        name
+      }
+    }
+    supervisors {
+      directus_users_id {
+        id
+        first_name
+        last_name
+        email
+      }
+    }
+  }
+  status
+  last_access
+}
+
+query sysUsersTable($offset: Int, $limit: Int, $sort: [String], $search: String, $filter: directus_users_filter) {
+  users(limit: $limit, offset: $offset, sort: $sort, search: $search, filter: $filter) {
+    ...sysUsersTableFragment
+  }
+
+  users_aggregated(search: $search, filter: $filter) {
+    countDistinct {
+      id
+    }
+  }
+}
+
+query sysUsers($offset: Int, $limit: Int, $sort: [String], $search: String, $filter: directus_users_filter) {
+  users(limit: $limit, offset: $offset, sort: $sort, search: $search, filter: $filter) {
+    ...UserForAssignment
+  }
+}
+query sysUserForAssigment($id: String!) {
+  users(filter: { id: { _eq: $id } }) {
+    ...UserForAssignment
+  }
+}
+
+fragment userExams on junction_directus_users_exams {
+  id
+  status
+  assigned_on
+  finished_on
+  due_date
+  allowed_attempts
+  attempts_used
+  attempt_due
+  started_on
+  score
+  expires_on
+  exams_id {
+    id
+    import_is_shell
+    title
+    expiration_date
+    modality {
+      title
+    }
+    exam_versions(sort: "-date_created", limit: 1) {
+      description
+      passing_score
+      is_proctoring
+    }
+  }
+  agency {
+    name
+    ia_enable
+  }
+  import_subscription_id
+  import_report_url
+  import_cert_url
+}
+
+query sysUsersExams($userFilters: directus_users_filter, $examFilters: junction_directus_users_exams_filter) {
+  users(filter: $userFilters) {
+    exams(filter: $examFilters, sort: "-assigned_on") {
+      ...userExams
+    }
+  }
+}
+
+query sysUsersTotalPages($search: String) {
+  users_aggregated(search: $search) {
+    count {
+      id
+    }
+  }
+}
+
+query sysUsersForReports($offset: Int, $limit: Int, $sort: [String], $search: String, $filter: directus_users_filter) {
+  users: users(limit: $limit, offset: $offset, sort: $sort, search: $search, filter: $filter) {
+    ...UserForReports
+  }
+  userTotal: users_aggregated(search: $search, filter: $filter) {
+    countDistinct {
+      id
+    }
+  }
+}
+
+query sysUsersForReportsExport($limit: Int, $offset: Int,$sort: [String], $search: String, $filter: directus_users_filter) {
+  users(limit: $limit, offset: $offset, sort: $sort, search: $search, filter: $filter) {
+    ...UserForReports
+  }
+}
+
+fragment UserForCRUD on directus_users {
+  status
+  email
+  first_name
+  last_name
+  address_line_1
+  address_line_2
+  city
+  state
+  zip
+  phone
+  imported
+  role {
+    id
+  }
+  agencies {
+    id
+    agencies_id {
+      id
+      name
+    }
+    status
+    employee_number
+    specialties {
+      specialties_id {
+        id
+        name
+      }
+    }
+    locations {
+      locations_id {
+        id
+        name
+      }
+    }
+    departments {
+      departments_id {
+        id
+        name
+      }
+    }
+    supervisors {
+      directus_users_id {
+        id
+        first_name
+        last_name
+        email
+      }
+    }
+  }
+}
+
+query sysUserForCRUD($filter: directus_users_filter) {
+  users(filter: $filter) {
+    ...UserForCRUD
+  }
+}
+
+mutation sysDeleteUser($id: ID!) {
+  update_users_item(id: $id, data: { status: "archived" }) {
+    id
+    status
+  }
+}
+
+mutation sysUpdateUser($id: ID!, $data: update_directus_users_input!) {
+  update_users_item(id: $id, data: $data) {
+    id
+  }
+}
+
+mutation sysCreateUser($data: create_directus_users_input!) {
+  create_users_item(data: $data) {
+    ...User
+  }
+}
+
+mutation createUserForAgency($data: create_junction_directus_users_agencies_input!) {
+  create_junction_directus_users_agencies_item(data: $data) {
+    id
+  }
+}
+
+mutation updateUserForAgency($id: ID!, $data: update_junction_directus_users_agencies_input!) {
+  update_junction_directus_users_agencies_item(id: $id, data: $data) {
+    id
+  }
+}
+
+fragment userForClinician on directus_users {
+  first_name
+  last_name
+  address_line_1
+  address_line_2
+  city
+  state
+  zip
+  phone
+}
+
+query sysUserForClinician($id: String!) {
+  users(filter: { id: { _eq: $id } }) {
+    ...userForClinician
+  }
+}
+
+mutation sysUpdateForClinicianUser($id: ID!, $data: update_directus_users_input!) {
+  update_users_item(id: $id, data: $data) {
+    id
+  }
+}
+
+fragment sysUserForReportDetails on directus_users {
+  id
+  first_name
+  last_name
+  email
+  status
+  last_access
+}
+
+query sysUserDetails(
+  $filter: directus_users_filter
+  $filter_agency: junction_directus_users_agencies_filter
+  $filter_exams: junction_directus_users_exams_filter
+  $filter_modules: junction_modules_definition_directus_users_filter
+  $filter_sc: junction_sc_definitions_directus_users_filter
+  $filter_policies: junction_directus_users_policies_filter
+  $filter_documents: junction_directus_users_documents_filter
+) {
+  users(filter: $filter) {
+    ...sysUserForReportDetails
+    agencies(filter: $filter_agency) {
+      id
+      agencies_id {
+        id
+        name
+      }
+      date_created
+      employee_number
+    }
+    exams(filter: $filter_exams) {
+      finished_on
+      assigned_on
+      score
+      status
+      attempts_used
+      allowed_attempts
+      started_on
+      expires_on
+      exams_id {
+        id
+        title
+      }
+      agency {
+        name
+      }
+      exam_versions_id {
+        expiration
+      }
+    }
+    modules(filter: $filter_modules) {
+      id
+      agency {
+        name
+      }
+      started_on
+      score
+      attempts_used
+      allowed_attempts
+      modules_definition_id {
+        id
+        title
+      }
+      module_version {
+        expiration
+        allowed_attempts
+      }
+      expires_on
+      status
+      finished_on
+    }
+    sc_definitions(filter: $filter_sc) {
+      id
+      agency {
+        name
+      }
+      assigned_on
+      finished_on
+      expires_on
+      sc_definitions_id {
+        id
+        title
+      }
+      status
+    }
+    policies(filter: $filter_policies) {
+      id
+      agency {
+        name
+      }
+      signed_on
+      expires_on
+      read
+      assigned_on
+      policies_id {
+        id
+        name
+      }
+    }
+    documents(filter: $filter_documents) {
+      id
+      assigned_on
+      agency {
+        name
+      }
+      read
+      expires_on
+      assigned_on
+      documents_id {
+        id
+        title
+      }
+    }
+  }
+}
+
+query getUserDetailsAvg(
+  $examFilter: junction_directus_users_exams_filter
+  $modulesFilter: junction_modules_definition_directus_users_filter
+) {
+  exams: junction_directus_users_exams_aggregated(filter: $examFilter) {
+    avg {
+      allowed_attempts
+      attempts_used
+      score
+    }
+  }
+  modules: junction_modules_definition_directus_users_aggregated(filter: $modulesFilter) {
+    avg {
+      allowed_attempts
+      attempts_used
+      score
+    }
+  }
+}
+
+######################## ----- ########################
+
+######################## Agencies #####################
+
+fragment Agency on agencies {
+  id
+  name
+  custom_allowed_attempts_exams
+  notifications_settings
+  automatic_notifications_email
+  custom_allowed_attempts_modules
+  default_due_date
+  default_expiration
+  max_licenses
+  enable_certificate_logo
+  sc_allow_na_option
+  self_assigment_allow
+  logo {
+    id
+    filename_download
+  }
+  certificate_logo {
+    id
+    filename_download
+  }
+  webhook_enable
+  webhook_url
+  webhook_token
+  webhook_secret
+  ia_enable
+  ia_app_id
+  ia_api_key
+  bh_enable
+}
+
+query getAllAgencies($offset: Int, $sort: [String], $search: String, $filter: agencies_filter) {
+  agencies(limit: -1, offset: $offset, sort: $sort, search: $search, filter: $filter) {
+    ...Agency
+  }
+}
+
+fragment AgencyForAdmin on agencies {
+  id
+  name
+  import_portal_id
+  live_since
+}
+
+query getAllAgenciesForAdmin($offset: Int, $limit: Int, $sort: [String], $search: String, $filter: agencies_filter) {
+  agencies(limit: $limit, offset: $offset, sort: $sort, search: $search, filter: $filter) {
+    ...AgencyForAdmin
+  }
+  agencies_aggregated(search: $search, filter: $filter) {
+    count {
+      id
+    }
+  }
+}
+
+query Agency {
+  agencies {
+    id
+    name
+    custom_allowed_attempts_exams
+  }
+}
+
+query getAllAgenciesForBilling($limit: Int, $offset: Int, $search: String){
+  agencies(limit:$limit, offset:$offset, sort:"name", search:$search, filter:{status:{_eq:"published"}}){
+    id
+    name
+  }}
+
+query getAgencyById($id: ID!) {
+  agencies_by_id(id: $id) {
+    id
+    name
+    custom_allowed_attempts_exams
+  }
+}
+
+query getLicenses($id: ID!) {
+  agencies_by_id(id: $id) {
+    id
+    directus_users {
+      id
+    }
+  }
+}
+
+mutation createAgency($data: create_agencies_input!) {
+  create_agencies_item(data: $data) {
+    id
+  }
+}
+
+mutation updateAgency($id: ID!, $data: update_agencies_input!) {
+  update_agencies_item(id: $id, data: $data) {
+    id
+  }
+}
+
+mutation deleteAgency($id: ID!) {
+  update_agencies_item(id: $id, data: { status: "archived" }) {
+    id
+  }
+}
+
+mutation deleteCategory($id: ID!) {
+  update_categories_item(id: $id, data: { status: "archived" }) {
+    id
+  }
+}
+
+######################## ----- ########################
+
+######################## Exams ########################
+
+fragment CompetenciesExam on junction_directus_users_exams {
+  exams_id {
+    id
+    title
+    import_is_shell
+    modality {
+      title
+    }
+    exam_versions(sort: "-date_created", limit: 1) {
+      contact_hour
+    }
+    import_ceu
+  }
+  exam_versions_id {
+    id
+    title
+    contact_hour
+    expiration
+  }
+  agency {
+    id
+    name
+  }
+  expires_on
+  allowed_attempts
+  attempts_used
+  assigned_on
+  due_date
+  status
+  finished_on
+  cert_expiry_date
+  cert_code
+  started_on
+  id
+  score
+  import_cert_url
+  import_report_url
+  reassigned
+  expiration_type
+  score_history
+}
+
+fragment CompetenciesModule on junction_modules_definition_directus_users {
+  id
+  assigned_on
+  finished_on
+  expires_on
+  allowed_attempts
+  attempts_used
+  due_date
+  status
+  approved
+  score
+  import_cert_url
+  import_report_url
+  reassigned
+  expiration_type
+  modules_definition_id {
+    id
+    title
+    import_is_shell
+    import_ceu
+    last_version {
+      contact_hour
+    }
+  }
+  module_version {
+    contact_hour
+  }
+  agency {
+    id
+    name
+  }
+}
+
+query UserCompetencies($user: String!, $agencies: [String]!, $offset: Int) {
+  exams: junction_directus_users_exams(
+    filter: {
+      _and: [
+        { directus_users_id: { id: { _eq: $user } } }
+        { status: { _neq: "archived" } }
+        { agency: { id: { _in: $agencies } } }
+      ]
+    }
+    offset: $offset
+    sort: "-assigned_on"
+  ) {
+    ...CompetenciesExam
+  }
+  policies: junction_directus_users_policies(
+    filter: {
+      _and: [
+        { directus_users_id: { id: { _eq: $user } } }
+        { status: { _neq: "archived" } }
+        { agency: { id: { _in: $agencies } } }
+      ]
+    }
+    sort: "-assigned_on"
+    offset: $offset
+  ) {
+    id
+    assigned_on
+    expires_on
+    read
+    signed_on
+    due_date
+    status
+    reassigned
+    expiration_type
+    policies_id {
+      id
+      name
+    }
+    agency {
+      id
+      name
+    }
+  }
+  documents: junction_directus_users_documents(
+    filter: {
+      _and: [
+        { directus_users_id: { id: { _eq: $user } } }
+        { status: { _neq: "archived" } }
+        { agency: { id: { _in: $agencies } } }
+      ]
+    }
+    sort: "-assigned_on"
+    offset: $offset
+  ) {
+    id
+    assigned_on
+    expires_on
+    read
+    due_date
+    status
+    reassigned
+    expiration_type
+    documents_id {
+      id
+      title
+    }
+    agency {
+      id
+      name
+    }
+  }
+  modules: junction_modules_definition_directus_users(
+    filter: {
+      _and: [
+        { directus_users_id: { id: { _eq: $user } } }
+        { status: { _neq: "archived" } }
+        { agency: { id: { _in: $agencies } } }
+      ]
+    }
+    sort: "-assigned_on"
+    offset: $offset
+  ) {
+    ...CompetenciesModule
+  }
+  skills_checklists: junction_sc_definitions_directus_users(
+    filter: {
+      _and: [
+        { directus_users_id: { id: { _eq: $user } } }
+        { status: { _neq: "archived" } }
+        { agency: { id: { _in: $agencies } } }
+      ]
+    }
+    sort: "-assigned_on"
+    offset: $offset
+  ) {
+    id
+    assigned_on
+    due_date
+    expires_on
+    finished_on
+    status
+    import_report_url
+    reassigned
+    expiration_type
+    sc_definitions_id {
+      import_is_shell
+      id
+      title
+    }
+    agency {
+      id
+      name
+    }
+  }
+}
+
+fragment Exam on exams {
+  id
+  status
+  directus_users {
+    id
+    allowed_attempts
+  }
+  title
+  date_created
+  agencies {
+    agencies_id {
+      id
+      name
+    }
+  }
+  modality {
+    id
+    title
+  }
+  specialties {
+    categories_id {
+      id
+      title
+    }
+  }
+  subspecialties {
+    categories_id {
+      id
+      title
+    }
+  }
+  exam_versions(sort: "-date_created", limit: 1) {
+    id
+    title
+    allowed_attempts
+    description
+    fail_message
+    introduction
+    passing_message
+    passing_score
+    questions_to_give
+    shuffle_questions
+    expiration
+    is_proctoring
+  }
+}
+
+fragment AllExamsForList on exams {
+  id
+  status
+  title
+  date_created
+  agencies {
+    agencies_id {
+      id
+      name
+    }
+  }
+  modality {
+    id
+    title
+  }
+  specialties {
+    categories_id {
+      id
+      title
+    }
+  }
+  subspecialties {
+    categories_id {
+      id
+      title
+    }
+  }
+  exam_versions(sort: "-date_created", limit: 1) {
+    id
+    title
+  }
+}
+
+query getAllExamsForAssignCompetency(
+  $offset: Int
+  $limit: Int
+  $sort: [String]
+  $search: String
+  $filter: exams_filter
+) {
+  exams(filter: $filter, limit: $limit, offset: $offset, sort: $sort, search: $search) {
+    ...Exam
+  }
+}
+
+query GetAllExamsForReportsFilter($search: String, $limit: Int, $filter: exams_filter) {
+  exams(filter: $filter, limit: $limit, search: $search) {
+    id
+    title
+  }
+}
+
+query getAllExamsForUserFilter($search: String, $limit: Int, $filter: junction_directus_users_exams_filter) {
+  junction_directus_users_exams(filter: $filter, limit: $limit, search: $search) {
+    exams_id {
+      id
+      title
+    }
+  }
+}
+
+query getAllExams($offset: Int, $limit: Int, $sort: [String], $search: String, $filter: exams_filter) {
+  exams(limit: $limit, offset: $offset, sort: $sort, search: $search, filter: $filter) {
+    ...AllExamsForList
+  }
+  exams_aggregated(search: $search, filter: $filter) {
+    count {
+      id
+    }
+  }
+}
+
+query getExamForCrud($id: ID!) {
+  exams_by_id(id: $id) {
+    id
+    status
+    expiration_date
+    modality {
+      id
+    }
+    specialties {
+      categories_id {
+        id
+        title
+        type
+      }
+    }
+    subspecialties {
+      categories_id {
+        id
+        title
+        type
+      }
+    }
+    agencies {
+      agencies_id {
+        id
+        name
+      }
+    }
+    exam_versions(sort: "-date_created", limit: 1) {
+      id
+      title
+      expiration
+      passing_score
+      allowed_attempts
+      questions_to_give
+      introduction
+      description
+      passing_message
+      fail_message
+      shuffle_questions
+      is_proctoring
+      contact_hour
+      outline {
+        id
+        title
+        filename_download
+        storage
+      }
+      questions(limit: 500) {
+        questions_id {
+          id
+        }
+      }
+    }
+  }
+}
+
+mutation createExam($data: create_exams_input!) {
+  create_exams_item(data: $data) {
+    id
+  }
+}
+
+mutation updateExam($id: ID!, $data: update_exams_input!) {
+  update_exams_item(id: $id, data: $data) {
+    id
+  }
+}
+
+mutation createExamVersion($data: create_exam_versions_input!) {
+  create_exam_versions_item(data: $data) {
+    id
+  }
+}
+
+mutation updateExamVersion($id: ID!, $data: update_exam_versions_input!) {
+  update_exam_versions_item(id: $id, data: $data) {
+    id
+  }
+}
+
+fragment UserExamReports on junction_directus_users_exams {
+  id
+  status
+  score
+  finished_on
+  started_on
+  expires_on
+  due_date
+  allowed_attempts
+  attempts_used
+  import_report_url
+  import_cert_url
+  expiration_type
+  directus_users_id {
+    id
+    first_name
+    last_name
+    email
+  }
+  exams_id {
+    id
+    title
+    import_ceu
+    exam_versions(sort: "-date_created", limit: 1) {
+      id
+      title
+    }
+  }
+  exam_versions_id {
+    expiration
+    contact_hour
+  }
+  agency {
+    date_created
+    name
+    directus_users {
+      employee_number
+    }
+  }
+}
+
+fragment UserExamQuestions on junction_directus_users_exams {
+  id
+  status
+  assigned_on
+  started_on
+  finished_on
+  due_date
+  allowed_attempts
+  attempts_used
+  question_versions_list
+  attempt_due
+  exams_id {
+    id
+    title
+    import_is_shell
+    modality {
+      id
+      title
+    }
+    exam_versions(sort: "-date_created", limit: 1) {
+      questions_to_give
+      shuffle_questions
+      id
+      title
+      description
+      passing_score
+      is_proctoring
+      questions {
+        id
+      }
+      outline {
+        id
+      }
+    }
+  }
+}
+
+query getUserExam($filter: junction_directus_users_exams_filter) {
+  junction_directus_users_exams(filter: $filter) {
+    ...UserExamQuestions
+  }
+}
+
+query getAllUserExam($limit: Int, $offset: Int, $sort: [String], $filter: junction_directus_users_exams_filter) {
+  junction_directus_users_exams(limit: $limit, offset: $offset, sort: $sort, filter: $filter) {
+    ...UserExamReports
+  }
+  junction_directus_users_exams_aggregated(filter: $filter) {
+    count {
+      id
+    }
+  }
+}
+######################## Overview reports ########################
+fragment OverviewExams on exams {
+  id
+  title
+  agencies {
+    agencies_id {
+      name
+    }
+  }
+  directus_users(filter: { status: { _neq: "archived" } }) {
+    agency {
+      id
+    }
+    allowed_attempts
+    attempts_used
+    score
+    due_date
+    finished_on
+    started_on
+    status
+  }
+  #  TODO get these values from the assignment
+  exam_versions(sort: "-date_created", limit: 1) {
+    allowed_attempts
+    passing_score
+  }
+}
+fragment OverviewModules on modules_definition {
+  id
+  title
+  agencies {
+    id
+    agencies_id {
+      id
+      name
+    }
+  }
+  directus_users(filter: { status: { _neq: "archived" } }) {
+    score
+    due_date
+    finished_on
+    started_on
+    approved
+    status
+    attempts_used
+    allowed_attempts
+  }
+}
+
+fragment OverviewDocuments on documents {
+  id
+  title
+  document {
+    id
+  }
+  agencies {
+    agencies_id {
+      name
+    }
+  }
+  directus_users(filter: { status: { _neq: "archived" } }) {
+    expires_on
+    read
+  }
+}
+fragment OverviewPolicies on policies {
+  id
+  name
+  document {
+    id
+  }
+  agencies {
+    agencies_id {
+      name
+    }
+  }
+  directus_users(filter: { status: { _neq: "archived" } }) {
+    expires_on
+    signed_on
+    read
+  }
+}
+
+fragment OverviewSkillsChecklists on sc_definitions {
+  id
+  title
+  agency {
+    agencies_id {
+      name
+    }
+  }
+  directus_users(filter: { status: { _neq: "archived" } }) {
+    expires_on
+    due_date
+    finished_on
+    status
+  }
+}
+
+query GetOverviewExamsReport($limit: Int, $offset: Int, $sort: [String], $filter: exams_filter) {
+  exams(limit: $limit, offset: $offset, sort: $sort, filter: $filter) {
+    ...OverviewExams
+  }
+  exams_aggregated(filter: $filter) {
+    countDistinct {
+      id
+    }
+  }
+}
+
+query GetOverviewModulesReport($limit: Int, $offset: Int, $sort: [String], $filter: modules_definition_filter) {
+  modules_definition(limit: $limit, offset: $offset, sort: $sort, filter: $filter) {
+    ...OverviewModules
+  }
+  modules_definition_aggregated(filter: $filter) {
+    count {
+      id
+    }
+  }
+}
+
+query GetOverviewDocumentsReport($limit: Int, $offset: Int, $sort: [String], $filter: documents_filter) {
+  documents(limit: $limit, offset: $offset, sort: $sort, filter: $filter) {
+    ...OverviewDocuments
+  }
+  documents_aggregated(filter: $filter) {
+    count {
+      id
+    }
+  }
+}
+query GetOverviewPoliciesReport($limit: Int, $offset: Int, $sort: [String], $filter: policies_filter) {
+  policies(limit: $limit, offset: $offset, sort: $sort, filter: $filter) {
+    ...OverviewPolicies
+  }
+  policies_aggregated(filter: $filter) {
+    count {
+      id
+    }
+  }
+}
+
+query GetOverviewSkillsChecklistsReport($limit: Int, $offset: Int, $sort: [String], $filter: sc_definitions_filter) {
+  sc_definitions(limit: $limit, offset: $offset, sort: $sort, filter: $filter) {
+    ...OverviewSkillsChecklists
+  }
+  sc_definitions_aggregated(filter: $filter) {
+    count {
+      id
+    }
+  }
+}
+
+query GetUserExamsAnalyticsOverviewReports(
+  $notStartedfilters: exams_filter
+  $passedFilters: exams_filter
+  $failedFilters: exams_filter
+  $inProgressFilters: exams_filter
+  $inReviewFilters: exams_filter
+  $invalidFilters: exams_filter
+  $expiredFilters: exams_filter
+  $totalFilters: exams_filter
+  $scoreFilters: exams_filter
+) {
+  notStarted: exams_aggregated(filter: $notStartedfilters) {
+    count {
+      id
+    }
+  }
+  passed: exams_aggregated(filter: $passedFilters) {
+    count {
+      id
+    }
+  }
+  failed: exams_aggregated(filter: $failedFilters) {
+    count {
+      id
+    }
+  }
+  inProgress: exams_aggregated(filter: $inProgressFilters) {
+    count {
+      id
+    }
+  }
+  inReview: exams_aggregated(filter: $inReviewFilters) {
+    count {
+      id
+    }
+  }
+  invalid: exams_aggregated(filter: $invalidFilters) {
+    count {
+      id
+    }
+  }
+  expired: exams_aggregated(filter: $expiredFilters) {
+    count {
+      id
+    }
+  }
+  total: exams_aggregated(filter: $totalFilters) {
+    count {
+      id
+    }
+  }
+  scores: exams(filter: $scoreFilters) {
+    directus_users(filter: { status: { _neq: "archived" } }) {
+      score
+    }
+  }
+}
+
+query GetModulesAnalyticsOverviewReports(
+  $notStartedfilters: modules_definition_filter
+  $passedFilters: modules_definition_filter
+  $failedFilters: modules_definition_filter
+  $inProgressFilters: modules_definition_filter
+  $expiredFilters: modules_definition_filter
+  $totalFilters: modules_definition_filter
+  $scoreFilters: modules_definition_filter
+) {
+  notStarted: modules_definition_aggregated(filter: $notStartedfilters) {
+    count {
+      id
+    }
+  }
+  passed: modules_definition_aggregated(filter: $passedFilters) {
+    count {
+      id
+    }
+  }
+  failed: modules_definition_aggregated(filter: $failedFilters) {
+    count {
+      id
+    }
+  }
+  inProgress: modules_definition_aggregated(filter: $inProgressFilters) {
+    count {
+      id
+    }
+  }
+  expired: modules_definition_aggregated(filter: $expiredFilters) {
+    count {
+      id
+    }
+  }
+  total: modules_definition_aggregated(filter: $totalFilters) {
+    count {
+      id
+    }
+  }
+  scores: modules_definition(filter: $scoreFilters) {
+    directus_users(filter: { status: { _neq: "archived" } }) {
+      score
+    }
+  }
+}
+
+query GetDocumentsAnalyticsOverviewReports(
+  $unreadFilter: documents_filter
+  $readfilter: documents_filter
+  $expiredFilter: documents_filter
+  $totalFilter: documents_filter
+) {
+  unread: documents_aggregated(filter: $unreadFilter) {
+    count {
+      id
+    }
+  }
+  read: documents_aggregated(filter: $readfilter) {
+    count {
+      id
+    }
+  }
+  expired: documents_aggregated(filter: $expiredFilter) {
+    count {
+      id
+    }
+  }
+  total: documents_aggregated(filter: $totalFilter) {
+    count {
+      id
+    }
+  }
+}
+query GetPoliciesAnalyticsOverviewReports(
+  $readFilters: policies_filter
+  $unreadFilters: policies_filter
+  $signedFilters: policies_filter
+  $expiredFilters: policies_filter
+  $totalFilter: policies_filter
+) {
+  read: policies_aggregated(filter: $readFilters) {
+    count {
+      id
+    }
+  }
+  unread: policies_aggregated(filter: $unreadFilters) {
+    count {
+      id
+    }
+  }
+
+  signed: policies_aggregated(filter: $signedFilters) {
+    count {
+      id
+    }
+  }
+  expired: policies_aggregated(filter: $expiredFilters) {
+    count {
+      id
+    }
+  }
+  total: policies_aggregated(filter: $totalFilter) {
+    count {
+      id
+    }
+  }
+}
+query GetAllSkillCheckAnalyticsOverviewReports(
+  $notStarted: sc_definitions_filter
+  $inProgressFilter: sc_definitions_filter
+  $completed: sc_definitions_filter
+  $expiredFilter: sc_definitions_filter
+  $totalFilter: sc_definitions_filter
+) {
+  notStarted: sc_definitions_aggregated(filter: $notStarted) {
+    count {
+      id
+    }
+  }
+  inProgress: sc_definitions_aggregated(filter: $inProgressFilter) {
+    count {
+      id
+    }
+  }
+  completed: sc_definitions_aggregated(filter: $completed) {
+    count {
+      id
+    }
+  }
+  expired: sc_definitions_aggregated(filter: $expiredFilter) {
+    count {
+      id
+    }
+  }
+  total: sc_definitions_aggregated(filter: $totalFilter) {
+    count {
+      id
+    }
+  }
+}
+
+query GetUsersOnOverviewReport($filter: junction_directus_users_agencies_filter) {
+  junction_directus_users_agencies(filter: $filter) {
+    directus_users_id {
+      id
+    }
+  }
+}
+
+######################## ----- ########################
+
+query getUserExamAttempt($user: String!, $assignment_id: GraphQLStringOrFloat!) {
+  junction_directus_users_exams(
+    filter: { directus_users_id: { id: { _eq: $user } }, id: { _eq: $assignment_id } }
+    sort: "-assigned_on"
+    limit: 1
+  ) {
+    id
+    status
+    allowed_attempts
+    exams_id {
+      id
+      title
+      modality {
+        title
+      }
+    }
+    attempts_used
+    assigned_on
+    started_on
+    exam_versions_id {
+      passing_score
+      fail_message
+      passing_message
+      description
+      contact_hour
+      outline {
+        id
+      }
+    }
+    score_history
+  }
+}
+
+query getUserExamsResultsByAttempt(
+  $assignment_id: GraphQLStringOrFloat!
+  $exam_id: String!
+  $attempt: GraphQLStringOrFloat!
+) {
+  exam_results(
+    filter: {
+      assignment_id: { id: { _eq: $assignment_id } }
+      exams_id: { id: { _eq: $exam_id } }
+      attempt: { _eq: $attempt }
+    }
+  ) {
+    correct
+  }
+}
+
+query getUserExamsResultsDetailByAttempt(
+  $exam_id: String!
+  $assignment_id: GraphQLStringOrFloat!
+  $attempt: GraphQLStringOrFloat!
+) {
+  exam_results(
+    filter: {
+      exams_id: { id: { _eq: $exam_id } }
+      attempt: { _eq: $attempt }
+      assignment_id: { id: { _eq: $assignment_id } }
+    }
+  ) {
+    date_created
+    correct
+    time_taken
+    answer
+    question_versions_id {
+      question
+      image{
+        id
+      }
+    }
+    questions_id {
+      category {
+        title
+      }
+    }
+    assignment_id {
+      agency {
+        name
+      }
+    }
+  }
+}
+
+query getUserExamCerificateDetails($user: String!, $assignment_id: GraphQLStringOrFloat!) {
+  junction_directus_users_exams(
+    filter: {
+      directus_users_id: { id: { _eq: $user } }
+      id: { _eq: $assignment_id }
+      status: { _in: ["COMPLETED", "EXPIRED"] }
+    }
+  ) {
+    cert_code
+    cert_expiry_date
+    expires_on
+    score
+    finished_on
+    status
+    agency {
+      name
+      logo {
+        id
+      }
+      certificate_logo {
+        id
+      }
+      enable_certificate_logo
+    }
+    exams_id {
+      title
+      modality {
+        title
+      }
+    }
+    exam_versions_id {
+      passing_score
+      contact_hour
+    }
+  }
+}
+
+query getUserExamsAverageAttempts($filter: junction_directus_users_exams_filter) {
+  junction_directus_users_exams_aggregated(filter: $filter) {
+    avg {
+      attempts_used
+      allowed_attempts
+      score
+    }
+  }
+}
+
+query getUserExamsByStatusReports(
+  $notStartedfilters: junction_directus_users_exams_filter
+  $passedFilters: junction_directus_users_exams_filter
+  $failedFilters: junction_directus_users_exams_filter
+  $inProgressFilters: junction_directus_users_exams_filter
+  $inReviewFilters: junction_directus_users_exams_filter
+  $invalidFilters: junction_directus_users_exams_filter
+  $expiredFilters: junction_directus_users_exams_filter
+  $totalFilters: junction_directus_users_exams_filter
+) {
+  notStarted: junction_directus_users_exams_aggregated(filter: $notStartedfilters) {
+    count {
+      status
+    }
+  }
+  passed: junction_directus_users_exams_aggregated(filter: $passedFilters) {
+    count {
+      status
+    }
+  }
+  failed: junction_directus_users_exams_aggregated(filter: $failedFilters) {
+    count {
+      status
+    }
+  }
+
+  inProgress: junction_directus_users_exams_aggregated(filter: $inProgressFilters) {
+    count {
+      status
+    }
+  }
+  inReview: junction_directus_users_exams_aggregated(filter: $inReviewFilters) {
+    count {
+      status
+    }
+  }
+  invalid: junction_directus_users_exams_aggregated(filter: $invalidFilters) {
+    count {
+      status
+    }
+  }
+  expired: junction_directus_users_exams_aggregated(filter: $expiredFilters) {
+    count {
+      status
+    }
+  }
+  total: junction_directus_users_exams_aggregated(filter: $totalFilters) {
+    count {
+      status
+    }
+  }
+}
+
+query sysUsersWithExams($filter: directus_users_filter, $search: String) {
+  users(filter: $filter, search: $search) {
+    id
+    first_name
+    last_name
+  }
+}
+
+######################## ----- ########################
+
+######################## Questions #####################
+
+fragment AllQuestionsForList on questions {
+  id
+  type
+  title
+  category {
+    id
+    title
+  }
+  versions(sort: "-date_created", limit: 1) {
+    id
+    question
+    answer
+    image {
+      id
+    }
+  }
+}
+
+query getAllQuestions($offset: Int, $limit: Int, $sort: [String], $search: String, $filter: questions_filter) {
+  questions(limit: $limit, offset: $offset, sort: $sort, search: $search, filter: $filter) {
+    ...AllQuestionsForList
+  }
+  questions_aggregated(search: $search, filter: $filter) {
+    count {
+      id
+    }
+  }
+}
+
+mutation createQuestion($data: create_questions_input!) {
+  create_questions_item(data: $data) {
+    id
+  }
+}
+
+mutation updateQuestion($id: ID!, $data: update_questions_input!) {
+  update_questions_item(id: $id, data: $data) {
+    id
+  }
+}
+
+mutation updateQuestions($ids: [ID]!, $data: update_questions_input!) {
+  update_questions_items(ids: $ids, data: $data) {
+    id
+  }
+}
+
+mutation createQuestionVersion($data: create_question_versions_input!) {
+  create_question_versions_item(data: $data) {
+    id
+  }
+}
+
+query getQuestionVersion($id: String!) {
+  question_versions(filter: { id: { _eq: $id } }) {
+    id
+    question
+    question_id {
+      id
+      type
+    }
+  }
+}
+
+mutation saveAnswer($data: create_exam_results_input!) {
+  create_exam_results_item(data: $data) {
+    id
+  }
+}
+
+######################## ----- ########################
+
+######################## Categories ###################
+
+fragment Category on categories {
+  id
+  title
+  type
+  agency {
+    id
+    name
+  }
+}
+
+query getAllCategories($offset: Int, $limit: Int, $sort: [String], $search: String, $filter: categories_filter) {
+  categories(limit: $limit, offset: $offset, sort: $sort, search: $search, filter: $filter) {
+    ...Category
+  }
+  categories_aggregated(search: $search, filter: $filter) {
+    count {
+      id
+    }
+  }
+}
+
+mutation createCategory($data: create_categories_input!) {
+  create_categories_item(data: $data) {
+    id
+  }
+}
+
+mutation updateCategories($ids: [ID]!, $data: update_categories_input!) {
+  update_categories_items(ids: $ids, data: $data) {
+    id
+  }
+}
+
+mutation updateCategory($id: ID!, $data: update_categories_input!) {
+  update_categories_item(id: $id, data: $data) {
+    id
+  }
+}
+
+######################## ----- ########################
+
+######################## Policies ###################
+
+fragment Policies on policies {
+  id
+  status
+  name
+  categories {
+    id
+    categories_id {
+      id
+      title
+    }
+  }
+  agencies {
+    id
+    agencies_id {
+      id
+      name
+    }
+  }
+  document {
+    id
+    title
+    filename_download
+    storage
+  }
+}
+
+fragment PoliciesAssignments on junction_directus_users_policies {
+  id
+  agency {
+    name
+  }
+  read
+  signed_on
+  assigned_on
+  expires_on
+  due_date
+  status
+  expiration_type
+  signature_file {
+    id
+  }
+  directus_users_id {
+    id
+    first_name
+    last_name
+    email
+  }
+  policies_id {
+    id
+    name
+    import_policy_id
+    import_policy_url
+    categories {
+      categories_id {
+        id
+        title
+      }
+    }
+    document {
+      id
+      title
+      filesize
+      storage
+      filename_download
+    }
+  }
+}
+
+fragment PoliciesForListing on policies {
+  id
+  name
+  status
+  agencies {
+    agencies_id {
+      name
+    }
+  }
+}
+
+fragment PoliciesForReport on junction_directus_users_policies {
+  id
+  read
+  signed_on
+  assigned_on
+  agency {
+    name
+  }
+  expires_on
+  directus_users_id {
+    id
+    first_name
+    last_name
+  }
+  policies_id {
+    id
+    name
+    status
+  }
+}
+
+query getAllPolicies($offset: Int, $limit: Int, $sort: [String], $search: String, $filter: policies_filter) {
+  policies(limit: $limit, offset: $offset, sort: $sort, search: $search, filter: $filter) {
+    ...Policies
+  }
+}
+
+query getAllPoliciesTotalItems($search: String, $filter: policies_filter) {
+  policies_aggregated(search: $search, filter: $filter) {
+    count {
+      id
+    }
+  }
+}
+
+query getAllPoliciesForAssignment(
+  $offset: Int
+  $limit: Int
+  $sort: [String]
+  $search: String
+  $filter: policies_filter
+) {
+  policies(filter: $filter, limit: $limit, offset: $offset, sort: $sort, search: $search) {
+    ...PoliciesForListing
+  }
+}
+
+query getAllPoliciesAssignments(
+  $offset: Int
+  $limit: Int
+  $sort: [String]
+  $filter: junction_directus_users_policies_filter
+) {
+  junction_directus_users_policies(filter: $filter, limit: $limit, offset: $offset, sort: $sort) {
+    ...PoliciesAssignments
+  }
+  junction_directus_users_policies_aggregated(filter: $filter) {
+    count {
+      id
+    }
+  }
+}
+
+query getAllPoliciesOnReport($search: String, $limit: Int!, $filter: policies_filter) {
+  policies(filter: $filter, search: $search, limit: $limit) {
+    id
+    name
+  }
+}
+
+query getAllPoliciesForUserFilter($search: String, $limit: Int!, $filter: junction_directus_users_policies_filter) {
+  junction_directus_users_policies(filter: $filter, search: $search, limit: $limit) {
+    policies_id {
+      id
+      name
+    }
+  }
+}
+
+query SysUsersWithPolicies($search: String, $limit: Int!, $filter: directus_users_filter) {
+  users(filter: $filter, search: $search, limit: $limit) {
+    id
+    first_name
+    last_name
+  }
+}
+
+query getPolicyDetail($policyId: ID!) {
+  policies_by_id(id: $policyId) {
+    ...Policies
+  }
+}
+
+query getPolicyAssignment($id: ID!) {
+  junction_directus_users_policies_by_id(id: $id) {
+    ...PoliciesAssignments
+  }
+}
+
+query getPoliciesCategories {
+  categories(filter: { status: { _eq: "published" }, type: { _eq: "policy" } }) {
+    id
+    title
+  }
+}
+
+query getPoliciesByStatusReports(
+  $unreadFilters: junction_directus_users_policies_filter
+  $readAndUnsignedFilters: junction_directus_users_policies_filter
+  $readAndSignedFilters: junction_directus_users_policies_filter
+  $expiredFilters: junction_directus_users_policies_filter
+  $totalFilter: junction_directus_users_policies_filter
+) {
+  unread: junction_directus_users_policies_aggregated(filter: $unreadFilters) {
+    count {
+      id
+    }
+  }
+  readAndUnsigned: junction_directus_users_policies_aggregated(filter: $readAndUnsignedFilters) {
+    count {
+      id
+    }
+  }
+  readAndSigned: junction_directus_users_policies_aggregated(filter: $readAndSignedFilters) {
+    count {
+      id
+    }
+  }
+  expired: junction_directus_users_policies_aggregated(filter: $expiredFilters) {
+    count {
+      id
+    }
+  }
+  total: junction_directus_users_policies_aggregated(filter: $totalFilter) {
+    count {
+      id
+    }
+  }
+}
+
+query getAllPoliciesForReport(
+  $offset: Int
+  $limit: Int
+  $sort: [String]
+  $search: String
+  $filter: junction_directus_users_policies_filter
+) {
+  junction_directus_users_policies(limit: $limit, offset: $offset, sort: $sort, search: $search, filter: $filter) {
+    ...PoliciesForReport
+  }
+
+  junction_directus_users_policies_aggregated(filter: $filter, search: $search) {
+    count {
+      id
+    }
+  }
+}
+
+mutation createPolicy($data: create_policies_input!) {
+  create_policies_item(data: $data) {
+    id
+  }
+}
+
+mutation updatePolicies($ids: [ID]!, $data: update_policies_input!) {
+  update_policies_items(ids: $ids, data: $data) {
+    id
+  }
+}
+
+mutation updatePolicy($id: ID!, $data: update_policies_input!) {
+  update_policies_item(id: $id, data: $data) {
+    id
+  }
+}
+
+mutation deletePolicy($id: ID!) {
+  update_policies_item(id: $id, data: { status: "archived" }) {
+    id
+  }
+}
+
+mutation deletePolicyAgencies($ids: [ID]!) {
+  delete_junction_policies_agencies_items(ids: $ids) {
+    ids
+  }
+}
+
+mutation updatePoliciesAssignment($id: ID!, $data: update_junction_directus_users_policies_input!) {
+  update_junction_directus_users_policies_item(id: $id, data: $data) {
+    id
+  }
+}
+
+####################### ----- ########################
+
+####################### Assignments ###################
+
+mutation updateExamCompetency($id: ID!, $data: update_junction_directus_users_exams_input!) {
+  update_junction_directus_users_exams_item(id: $id, data: $data) {
+    id
+  }
+}
+
+mutation updatePolicyCompetency($id: ID!, $data: update_junction_directus_users_policies_input!) {
+  update_junction_directus_users_policies_item(id: $id, data: $data) {
+    id
+  }
+}
+mutation updateDocumentCompetency($id: ID!, $data: update_junction_directus_users_documents_input!) {
+  update_junction_directus_users_documents_item(id: $id, data: $data) {
+    id
+  }
+}
+mutation updateModuleCompetency($id: ID!, $data: update_junction_modules_definition_directus_users_input!) {
+  update_junction_modules_definition_directus_users_item(id: $id, data: $data) {
+    id
+  }
+}
+mutation updateSkillChecklistCompetency($id: ID!, $data: update_junction_sc_definitions_directus_users_input!) {
+  update_junction_sc_definitions_directus_users_item(id: $id, data: $data) {
+    id
+  }
+}
+
+######################## ----- ########################
+
+################## Skills Checklist ###################
+
+fragment SkillChecklist on sc_definitions {
+  id
+  title
+  reference_number
+  category {
+    id
+    title
+  }
+  speciality {
+    id
+    title
+  }
+  sub_speciality {
+    id
+    title
+  }
+  status
+  last_version {
+    id
+    instructions
+    agreements
+    questions
+    version_number
+    total_questions
+    description
+    expiration
+    is_new_format
+  }
+  agency {
+    agencies_id {
+      id
+      name
+    }
+  }
+}
+
+query getCategoriesForSC($search: String, $limit: Int) {
+  categories(filter: { status: { _eq: "published" }, type: { _eq: "modality" } }, search: $search, limit: $limit) {
+    id
+    title
+  }
+}
+
+#query getAllExams($offset: Int, $limit: Int, $sort: [String], $search: String, $status: [String], $agencies: [String], $allAgencies: Boolean) {
+#  exams(
+#    limit: $limit,
+#    offset: $offset,
+#    sort: $sort,
+#    search: $search,
+#    filter: {
+#      _and: [
+#        { status: { _in: $status } },
+#        {
+#          _or: [
+#            {
+#              _or: [
+#                {agencies: { agencies_id: { id: { _in: $agencies } } }},
+#                {agencies: { agencies_id: { id: { _null: true } } }},
+#              ]
+#            }
+#            {
+#              id: { _nnull: $allAgencies }
+#            }
+#          ]
+#
+#        }
+#      ]
+#    }
+#  )
+################## Documents ###################
+
+query SysUsersWithSkillChecklists($search: String, $limit: Int!, $filter: directus_users_filter) {
+  users(filter: $filter, search: $search, limit: $limit) {
+    id
+    first_name
+    last_name
+  }
+}
+
+query GetAllSkillChecklistsOnReport($search: String, $limit: Int!, $filter: sc_definitions_filter) {
+  sc_definitions(filter: $filter, search: $search, limit: $limit) {
+    id
+    title
+  }
+}
+
+query GetAllSkillChecklistsForUserFilter(
+  $search: String
+  $limit: Int!
+  $filter: junction_sc_definitions_directus_users_filter
+) {
+  junction_sc_definitions_directus_users(filter: $filter, search: $search, limit: $limit) {
+    sc_definitions_id {
+      id
+      title
+    }
+  }
+}
+
+query GetAllSkillChecklistsTotalsReports(
+  $notStartedFilter: junction_sc_definitions_directus_users_filter
+  $completedFilter: junction_sc_definitions_directus_users_filter
+  $expiredFilter: junction_sc_definitions_directus_users_filter
+  $totalFilter: junction_sc_definitions_directus_users_filter
+) {
+  notStarted: junction_sc_definitions_directus_users_aggregated(filter: $notStartedFilter) {
+    count {
+      id
+    }
+  }
+  completed: junction_sc_definitions_directus_users_aggregated(filter: $completedFilter) {
+    count {
+      id
+    }
+  }
+  expired: junction_sc_definitions_directus_users_aggregated(filter: $expiredFilter) {
+    count {
+      id
+    }
+  }
+  total: junction_sc_definitions_directus_users_aggregated(filter: $totalFilter) {
+    count {
+      id
+    }
+  }
+}
+
+query GetAllAssignedSkillChecklistOnReport(
+  $offset: Int
+  $limit: Int
+  $sort: [String]
+  $filter: junction_sc_definitions_directus_users_filter
+) {
+  junction_sc_definitions_directus_users(limit: $limit, offset: $offset, sort: $sort, filter: $filter) {
+    ...SkillChecklistAssignment
+  }
+  junction_sc_definitions_directus_users_aggregated(filter: $filter) {
+    count {
+      id
+    }
+  }
+}
+
+query GetSkillChecklistsAssignments(
+  $filter: junction_sc_definitions_directus_users_filter
+  $search: String
+  $limit: Int
+  $offset: Int
+  $sort: [String]
+) {
+  junction_sc_definitions_directus_users(filter: $filter
+    limit: $limit
+    search: $search
+    offset: $offset
+    sort: $sort) {
+    ...SkillChecklistAssignment
+  }
+}
+
+query getTableSkillsChecklists(
+  $offset: Int
+  $limit: Int
+  $sort: [String]
+  $search: String
+  $filter: sc_definitions_filter
+) {
+  sc_definitions(limit: $limit, offset: $offset, sort: $sort, search: $search, filter: $filter) {
+    ...SkillChecklist
+  }
+}
+
+query getTableSkillsChecklistsTotalPages($search: String, $filter: sc_definitions_filter) {
+  sc_definitions_aggregated(search: $search, filter: $filter) {
+    count {
+      id
+    }
+  }
+}
+
+query getSkillChecklistDetail($checklistId: ID!) {
+  sc_definitions_by_id(id: $checklistId) {
+    ...SkillChecklist
+  }
+}
+
+query getSkillChecklistsDetails($filter: sc_definitions_filter, $limit: Int, $search: String) {
+  sc_definitions(filter: $filter, limit: $limit, search: $search) {
+    ...SkillChecklist
+  }
+}
+
+query getSkillsChecklistsCategories {
+  categories(filter: { status: { _eq: "published" }, type: { _eq: "modality" } }) {
+    id
+    title
+  }
+}
+
+mutation startSkillChecklist($assignmentId: ID!, $versionId: ID!, $questions: JSON) {
+  update_junction_sc_definitions_directus_users_item(
+    id: $assignmentId
+    data: {
+      questions: $questions
+      skillchecklist_version: { id: $versionId }
+      finished_on: null
+      status: "PENDING"
+      expiration_date: null
+    }
+  ) {
+    id
+  }
+}
+
+mutation updateSkillChecklistAssignment(
+  $assignmentId: ID!
+  $data: update_junction_sc_definitions_directus_users_input!
+) {
+  update_junction_sc_definitions_directus_users_item(id: $assignmentId, data: $data) {
+    id
+  }
+}
+
+mutation createSkillChecklist($data: create_sc_definitions_input!) {
+  create_sc_definitions_item(data: $data) {
+    id
+    versions {
+      id
+    }
+  }
+}
+
+mutation updateSkillChecklist($id: ID!, $data: update_sc_definitions_input!) {
+  update_sc_definitions_item(id: $id, data: $data) {
+    id
+    last_version {
+      id
+    }
+  }
+}
+
+mutation createSkillChecklistVersion($data: create_sc_versions_input!) {
+  create_sc_versions_item(data: $data) {
+    id
+  }
+}
+
+mutation deleteSkillChecklist($id: ID!) {
+  update_sc_definitions_item(id: $id, data: { status: "archived" }) {
+    id
+  }
+}
+
+mutation updateSkillChecklistVersion($id: ID!, $data: update_sc_versions_input!) {
+  update_sc_versions_item(id: $id, data: $data) {
+    id
+  }
+}
+
+fragment SkillChecklistAssignment on junction_sc_definitions_directus_users {
+  id
+  status
+  assigned_on
+  due_date
+  expiration_date
+  expires_on
+  finished_on
+  expiration_type
+  import_report_url
+  import_survey_subscription_id
+  sc_definitions_id {
+    id
+    title
+    import_is_shell
+    category {
+      id
+      title
+    }
+    last_version {
+      total_questions
+      agreements
+      instructions
+      questions
+      id
+      version_number
+      description
+      expiration
+      is_new_format
+    }
+  }
+  skillchecklist_version {
+    id
+    version_number
+    questions
+    total_questions
+    agreements
+    instructions
+    description
+    is_new_format
+  }
+  directus_users_id {
+    id
+    first_name
+    last_name
+    email
+    agencies {
+      agencies_id {
+        name
+      }
+      employee_number
+    }
+  }
+  questions
+  accept_agreements
+  agency {
+    id
+    name
+  }
+}
+
+query getSkillsChecklistsAssignments($category: [String], $status: [String], $userId: String!) {
+  junction_sc_definitions_directus_users(
+    filter: {
+      directus_users_id: { id: { _eq: $userId } }
+      sc_definitions_id: { category: { id: { _in: $category } } }
+      status: { _in: $status }
+      agency: {
+        _and: [
+          { directus_users: { status: { _eq: "active" } } }
+          { directus_users: { directus_users_id: { id: { _eq: "$CURRENT_USER" } } } }
+        ]
+      }
+    }
+    sort: "-assigned_on"
+  ) {
+    ...SkillChecklistAssignment
+  }
+}
+
+query getSkillChecklistAssignment($assignmentId: ID!) {
+  junction_sc_definitions_directus_users_by_id(id: $assignmentId) {
+    ...SkillChecklistAssignment
+  }
+}
+
+mutation setSkillChecklistAssignmentQuestions(
+  $assignmentId: ID!
+  $finished_on: Date
+  $expires_on: Date
+  $questions: JSON!
+  $status: String
+) {
+  update_junction_sc_definitions_directus_users_item(
+    id: $assignmentId
+    data: { questions: $questions, finished_on: $finished_on, expires_on: $expires_on, status: $status }
+  ) {
+    id
+  }
+}
+################## --------- ###################
+
+query getExamResults($exams_id: String!) {
+  exam_results(filter: { exams_id: { id: { _eq: $exams_id } } }) {
+    id
+    assignment_id {
+      status
+      attempts_used
+    }
+    time_taken
+    attempt
+    correct
+    question_versions_id {
+      question
+    }
+  }
+}
+
+################## Documents ###################
+
+fragment Document on documents {
+  id
+  title
+  status
+  agencies {
+    agencies_id {
+      name
+    }
+  }
+}
+
+fragment AllDocumentsForList on documents {
+  id
+  title
+  status
+  document {
+    type
+  }
+  categories {
+    categories_id {
+      id
+      title
+    }
+  }
+  agencies {
+    agencies_id {
+      id
+      name
+    }
+  }
+}
+
+fragment DocumentsAssigments on junction_directus_users_documents {
+  id
+  agency {
+    name
+  }
+  assigned_on
+  expiration_type
+  status
+  directus_users_id {
+    id
+    first_name
+    last_name
+  }
+  documents_id {
+    id
+    title
+    description
+    status
+    import_document_id
+    import_document_url
+    document {
+      id
+      title
+      filename_download
+      storage
+      filesize
+    }
+    categories {
+      categories_id {
+        id
+        title
+      }
+    }
+    agencies {
+      agencies_id {
+        id
+        name
+      }
+    }
+  }
+  read
+  expires_on
+}
+
+query GetAllDocuments($offset: Int, $limit: Int, $sort: [String], $search: String, $filter: documents_filter) {
+  documents(limit: $limit, offset: $offset, sort: $sort, search: $search, filter: $filter) {
+    ...AllDocumentsForList
+  }
+
+  documents_aggregated(filter: $filter, search: $search) {
+    count {
+      id
+    }
+  }
+}
+
+query getAllDocumentForAssignCompetency(
+  $offset: Int
+  $limit: Int
+  $sort: [String]
+  $search: String
+  $filter: documents_filter
+) {
+  documents(filter: $filter, limit: $limit, offset: $offset, sort: $sort, search: $search) {
+    ...Document
+  }
+}
+
+query GetDocumentById($id: ID!) {
+  documents_by_id(id: $id) {
+    id
+    title
+    description
+    document {
+      id
+      title
+      filename_download
+      storage
+    }
+    status
+    categories {
+      id
+      categories_id {
+        id
+        title
+      }
+    }
+    agencies {
+      id
+      agencies_id {
+        id
+        name
+      }
+    }
+  }
+}
+
+query GetDocumentsAssignments(
+  $offset: Int
+  $limit: Int
+  $filter: junction_directus_users_documents_filter
+) {
+  junction_directus_users_documents(filter: $filter, limit: $limit, offset: $offset, sort: "-assigned_on") {
+    ...DocumentsAssigments
+  }
+}
+query GetAllDocumentsAssignments(
+  $offset: Int
+  $limit: Int
+  $sort: [String]
+  $filter: junction_directus_users_documents_filter
+) {
+  junction_directus_users_documents(filter: $filter, limit: $limit, offset: $offset, sort: $sort) {
+    ...DocumentsAssigments
+  }
+  junction_directus_users_documents_aggregated(filter: $filter) {
+    count {
+      id
+    }
+  }
+}
+
+query SysUsersWithDocuments($search: String, $limit: Int!, $filter: directus_users_filter) {
+  users(filter: $filter, search: $search, limit: $limit) {
+    id
+    first_name
+    last_name
+  }
+}
+
+query GetAllDocumentsOnReport($search: String, $limit: Int!, $filter: documents_filter) {
+  documents(filter: $filter, search: $search, limit: $limit) {
+    id
+    title
+  }
+}
+
+query GetAllDocumentsForUserFilter($search: String, $limit: Int!, $filter: junction_directus_users_documents_filter) {
+  junction_directus_users_documents(filter: $filter, search: $search, limit: $limit) {
+    documents_id {
+      id
+      title
+    }
+  }
+}
+
+query GetAllAssignedDocumentsTotalReports(
+  $unreadFilter: junction_directus_users_documents_filter
+  $readfilter: junction_directus_users_documents_filter
+  $expiredFilter: junction_directus_users_documents_filter
+  $totalFilter: junction_directus_users_documents_filter
+) {
+  unread: junction_directus_users_documents_aggregated(filter: $unreadFilter) {
+    count {
+      id
+    }
+  }
+  read: junction_directus_users_documents_aggregated(filter: $readfilter) {
+    count {
+      id
+    }
+  }
+  expired: junction_directus_users_documents_aggregated(filter: $expiredFilter) {
+    count {
+      id
+    }
+  }
+  total: junction_directus_users_documents_aggregated(filter: $totalFilter) {
+    count {
+      id
+    }
+  }
+}
+
+mutation CreateDocument($data: create_documents_input!) {
+  create_documents_item(data: $data) {
+    id
+  }
+}
+mutation UpdateDocument($id: ID!, $data: update_documents_input!) {
+  update_documents_item(id: $id, data: $data) {
+    id
+  }
+}
+
+mutation DeleteDocumentAgencies($ids: [ID]!) {
+  delete_junction_documents_agencies_items(ids: $ids) {
+    ids
+  }
+}
+
+mutation UpdateAssignedDocument($id: ID!, $data: update_junction_directus_users_documents_input!) {
+  update_junction_directus_users_documents_item(id: $id, data: $data) {
+    id
+  }
+}
+
+################## --------- ###################
+
+################## Modules ###################
+
+fragment ModuleVersion on modules_versions {
+  id
+  version_number
+  expiration
+  package {
+    id
+    filename_download
+    title
+    storage
+  }
+  package_status
+  entry_point
+  allowed_attempts
+  contact_hour
+}
+
+fragment ModuleDefinition on modules_definition {
+  id
+  title
+  description
+  copyright
+  import_is_shell
+  expiration_date
+  agencies {
+    agencies_id {
+      name
+    }
+  }
+  last_version {
+    ...ModuleVersion
+  }
+  modality {
+    ...Category
+  }
+  sub_specialty {
+    ...Category
+  }
+  specialty {
+    ...Category
+  }
+  status
+  import_ceu
+  date_created
+}
+
+fragment ModuleAttempt on modules_results {
+  id
+  score
+  attempt
+  answers
+  finished_on
+  status
+  started_on
+  module_definition_id {
+    id
+  }
+  module_version_id {
+    id
+  }
+  assignment_id {
+    id
+  }
+}
+
+fragment ModuleAssignment on junction_modules_definition_directus_users {
+  id
+  modules_definition_id {
+    ...ModuleDefinition
+  }
+  module_version {
+    ...ModuleVersion
+  }
+  finished_on
+  assigned_on
+  due_date
+  expires_on
+  status
+  started_on
+  approved
+  score
+  cert_code
+  allowed_attempts
+  attempts_used
+  import_cert_url
+  expiration_type
+  directus_users_id {
+    id
+    first_name
+    last_access
+    last_name
+    email
+    agencies {
+      agencies_id {
+        id
+        name
+      }
+      employee_number
+      departments {
+        departments_id {
+          id
+          name
+        }
+      }
+      locations {
+        locations_id {
+          id
+          name
+        }
+      }
+      supervisors {
+        directus_users_id {
+          last_name
+          first_name
+          email
+          id
+        }
+      }
+      specialties {
+        specialties_id {
+          id
+          name
+        }
+      }
+    }
+  }
+  attempts(sort: "-date_created") {
+    ...ModuleAttempt
+  }
+  attempts_used
+  last_attempt {
+    ...ModuleAttempt
+  }
+  agency {
+    name
+    id
+    logo {
+      id
+    }
+    certificate_logo {
+      id
+    }
+    enable_certificate_logo
+  }
+  attempts(sort: "-date_created") {
+    ...ModuleAttempt
+  }
+  attempts_used
+  last_attempt {
+    ...ModuleAttempt
+  }
+  agency {
+    name
+  }
+}
+
+query getModulesCategories($search: String, $limit: Int) {
+  categories(filter: { status: { _eq: "published" }, type: { _eq: "modality" } }, search: $search, limit: $limit) {
+    ...Category
+  }
+}
+
+query getModulesDefinitions(
+  $search: String
+  $limit: Int
+  $offset: Int
+  $sort: [String]
+  $filter: modules_definition_filter
+) {
+  modules_definition(filter: $filter, limit: $limit, offset: $offset, search: $search, sort: $sort) {
+    ...ModuleDefinition
+  }
+}
+
+query getModulesDefinitionsForAssignment($filter: modules_definition_filter, $search: String, $limit: Int) {
+  modules_definition(filter: $filter, search: $search, limit: $limit) {
+    ...ModuleDefinition
+  }
+}
+
+query getModulesDefinitionsTotalPages($search: String) {
+  modules_definition_aggregated(filter: { status: { _in: ["published", "draft"] } }, search: $search) {
+    count {
+      id
+    }
+  }
+}
+
+query getModuleDefinition($id: ID!) {
+  modules_definition_by_id(id: $id) {
+    ...ModuleDefinition
+  }
+}
+
+query getModulesAssignments($category: [String], $status: [String], $userId: String!) {
+  junction_modules_definition_directus_users(
+    filter: {
+      directus_users_id: { id: { _eq: $userId } }
+      modules_definition_id: { modality: { id: { _in: $category } } }
+      status: { _in: $status }
+      agency: {
+        _and: [
+          { directus_users: { status: { _eq: "active" } } }
+          { directus_users: { directus_users_id: { id: { _eq: $userId } } } }
+        ]
+      }
+    }
+    sort: "-assigned_on"
+  ) {
+    ...ModuleAssignment
+  }
+}
+
+query getReportModulesAssignments(
+  $filter: junction_modules_definition_directus_users_filter
+  $search: String
+  $limit: Int
+  $offset: Int
+  $sort: [String]
+) {
+  assignments: junction_modules_definition_directus_users(
+    filter: $filter
+    limit: $limit
+    search: $search
+    offset: $offset
+    sort: $sort
+  ) {
+    ...ModuleAssignment
+  }
+  totalItems: junction_modules_definition_directus_users_aggregated(filter: $filter) {
+    count {
+      id
+    }
+  }
+}
+
+query getModuleassignmentByUserId($userId: String!, $assignmentId: GraphQLStringOrFloat!) {
+  junction_modules_definition_directus_users(
+    filter: { directus_users_id: { id: { _eq: $userId } }, id: { _eq: $assignmentId } }
+  ) {
+    ...ModuleAssignment
+  }
+}
+
+query sysUsersWithModules($filter: directus_users_filter, $search: String) {
+  users(filter: $filter, search: $search) {
+    id
+    first_name
+    last_name
+  }
+}
+
+query getModulesForFilter($filter: modules_definition_filter, $search: String, $limit: Int) {
+  modules_definition(filter: $filter, search: $search, limit: $limit) {
+    ...ModuleDefinition
+  }
+}
+
+query getModulesForUserFilter(
+  $filter: junction_modules_definition_directus_users_filter
+  $search: String
+  $limit: Int
+) {
+  junction_modules_definition_directus_users(filter: $filter, search: $search, limit: $limit) {
+    modules_definition_id {
+      id
+      title
+    }
+  }
+}
+
+query getModulesAverageScore($filter: junction_modules_definition_directus_users_filter) {
+  junction_modules_definition_directus_users_aggregated(filter: $filter) {
+    avg {
+      score
+    }
+  }
+}
+
+query getModulesReportByStatus(
+  $notStartedfilters: junction_modules_definition_directus_users_filter
+  $passedFilters: junction_modules_definition_directus_users_filter
+  $failedFilters: junction_modules_definition_directus_users_filter
+  $inProgressFilters: junction_modules_definition_directus_users_filter
+  $expiredFilters: junction_modules_definition_directus_users_filter
+  $totalFilters: junction_modules_definition_directus_users_filter
+) {
+  notStarted: junction_modules_definition_directus_users_aggregated(filter: $notStartedfilters) {
+    count {
+      status
+    }
+  }
+  passed: junction_modules_definition_directus_users_aggregated(filter: $passedFilters) {
+    count {
+      status
+    }
+  }
+  failed: junction_modules_definition_directus_users_aggregated(filter: $failedFilters) {
+    count {
+      status
+    }
+  }
+  inProgress: junction_modules_definition_directus_users_aggregated(filter: $inProgressFilters) {
+    count {
+      status
+    }
+  }
+  expired: junction_modules_definition_directus_users_aggregated(filter: $expiredFilters) {
+    count {
+      status
+    }
+  }
+  total: junction_modules_definition_directus_users_aggregated(filter: $totalFilters) {
+    count {
+      status
+    }
+  }
+}
+query getModuleAssignment($assignmentId: ID!) {
+  junction_modules_definition_directus_users_by_id(id: $assignmentId) {
+    ...ModuleAssignment
+  }
+}
+
+mutation startModule($assignmentId: ID!, $versionId: ID!) {
+  update_junction_modules_definition_directus_users_item(
+    id: $assignmentId
+    data: { module_version: { id: $versionId } }
+  ) {
+    id
+  }
+}
+
+mutation createAttempt($assignmentId: ID!, $moduleId: ID!, $moduleVersionId: ID!) {
+  create_modules_results_item(
+    data: {
+      assignment_id: { id: $assignmentId }
+      module_definition_id: { id: $moduleId }
+      module_version_id: { id: $moduleVersionId }
+    }
+  ) {
+    id
+  }
+}
+
+mutation createModuleDefinition($data: create_modules_definition_input!) {
+  create_modules_definition_item(data: $data) {
+    id
+    versions {
+      id
+    }
+  }
+}
+
+mutation updateModuleDefinition($id: ID!, $data: update_modules_definition_input!) {
+  update_modules_definition_item(id: $id, data: $data) {
+    id
+  }
+}
+
+mutation createModuleVersion($data: create_modules_versions_input!) {
+  create_modules_versions_item(data: $data) {
+    id
+  }
+}
+
+mutation updateModuleVersion($id: ID!, $data: update_modules_versions_input!) {
+  update_modules_versions_item(id: $id, data: $data) {
+    id
+  }
+}
+
+mutation deleteModuleDefinition($id: ID!) {
+  update_modules_definition_item(id: $id, data: { status: "archived" }) {
+    id
+  }
+}
+
+################## --------- ###################
+
+################## Bundles #####################
+fragment Bundle on bundles {
+  id
+  name
+  status
+  agency {
+    id
+    name
+  }
+  exams {
+    exams_id {
+      ...Exam
+    }
+  }
+  modules {
+    modules_definition_id {
+      ...ModuleDefinition
+    }
+  }
+  skills_checklists {
+    sc_definitions_id {
+      ...SkillChecklist
+    }
+  }
+  policies {
+    policies_id {
+      ...PoliciesForListing
+    }
+  }
+  documents {
+    documents_id {
+      ...Document
+    }
+  }
+}
+
+query GetAllBundlesForAssignCompetency(
+  $offset: Int
+  $limit: Int
+  $sort: [String]
+  $search: String
+  $filter: bundles_filter
+) {
+  bundles(filter: $filter, limit: $limit, offset: $offset, sort: $sort, search: $search) {
+    ...Bundle
+  }
+}
+
+query GetAllBundles($offset: Int, $limit: Int, $sort: [String], $search: String, $filter: bundles_filter) {
+  bundles(filter: $filter, limit: $limit, offset: $offset, sort: $sort, search: $search) {
+    ...Bundle
+  }
+
+  bundles_aggregated(filter: $filter, search: $search) {
+    count {
+      id
+    }
+  }
+}
+
+query GetBundleById($id: ID!) {
+  bundles_by_id(id: $id) {
+    ...Bundle
+  }
+}
+
+mutation CreateBundle($data: create_bundles_input!) {
+  create_bundles_item(data: $data) {
+    id
+  }
+}
+
+mutation UpdateBundle($id: ID!, $data: update_bundles_input!) {
+  update_bundles_item(id: $id, data: $data) {
+    id
+  }
+}
+
+mutation DeleteBundle($id: ID!) {
+  update_bundles_item(id: $id, data: { status: "archived" }) {
+    id
+  }
+}
+
+################## --------- ###################
+
+################## Settings #####################
+
+fragment UserForSettings on directus_users {
+  id
+  email
+  last_name
+  first_name
+  agencies {
+    id
+    employee_number
+    date_created
+    agencies_id {
+      id
+    }
+    departments {
+      departments_id {
+        id
+        name
+      }
+    }
+    locations {
+      locations_id {
+        id
+        name
+      }
+    }
+    supervisors {
+      directus_users_id {
+        id
+        first_name
+        last_name
+        email
+      }
+    }
+  }
+  role {
+    id
+    name
+    description
+  }
+  address_line_1
+  address_line_2
+  city
+  state
+  zip
+  phone
+}
+
+query sysUserForSettings($id: String!) {
+  users(filter: { id: { _eq: $id } }) {
+    ...UserForSettings
+  }
+}
+
+query getAllDepartmentsForSelect($search: String) {
+  departments(
+    filter: {
+      _and: [
+        { status: { _eq: "published" } }
+        { agency: { directus_users: { directus_users_id: { id: { _eq: "$CURRENT_USER" } } } } }
+      ]
+    }
+    search: $search
+  ) {
+    ...Department
+  }
+}
+
+query getAllLocationsForSelect($search: String) {
+  locations(
+    filter: {
+      _and: [
+        { status: { _eq: "published" } }
+        { agency: { directus_users: { directus_users_id: { id: { _eq: "$CURRENT_USER" } } } } }
+      ]
+    }
+    search: $search
+  ) {
+    ...Location
+  }
+}
+
+mutation updateJunctionUserAgency($id: ID!, $data: update_junction_directus_users_agencies_input!) {
+  update_junction_directus_users_agencies_item(id: $id, data: $data) {
+    id
+  }
+}
+
+################## --------- ###################
+
+################## Departments #################
+fragment Department on departments {
+  id
+  name
+}
+fragment DepartmentForList on departments {
+  id
+  name
+  agency {
+    id
+    name
+  }
+}
+query GetAllDepartmentsForFilterUsersOnAssignments(
+  $offset: Int
+  $limit: Int
+  $sort: [String]
+  $search: String
+  $filter: departments_filter
+) {
+  departments(filter: $filter, limit: $limit, offset: $offset, sort: $sort, search: $search) {
+    ...Department
+  }
+}
+query GetAllDepartmentsForListing(
+  $offset: Int
+  $limit: Int
+  $sort: [String]
+  $search: String
+  $filter: departments_filter
+) {
+  departments: departments(filter: $filter, limit: $limit, offset: $offset, sort: $sort, search: $search) {
+    ...DepartmentForList
+  }
+  total: departments_aggregated(filter: $filter, search: $search) {
+    count {
+      id
+    }
+  }
+}
+query departments($filter: departments_filter, $sort: [String], $search: String, $limit: Int) {
+  departments(filter: $filter, sort: $sort, search: $search, limit: $limit) {
+    ...Department
+  }
+}
+mutation createDepartment($data: create_departments_input!) {
+  create_departments_item(data: $data) {
+    id
+  }
+}
+
+mutation updateDepartment($id: ID!, $data: update_departments_input!) {
+  update_departments_item(id: $id, data: $data) {
+    id
+  }
+}
+
+mutation deleteDepartment($id: ID!) {
+  update_departments_item(id: $id, data: { status: "archived" }) {
+    id
+  }
+}
+################## --------- ###################
+
+################### Locations ##################
+fragment Location on locations {
+  id
+  name
+}
+fragment LocationForList on locations {
+  id
+  name
+  agency {
+    id
+    name
+  }
+}
+query GetAllLocationsForFilterUsersOnAssignments(
+  $offset: Int
+  $limit: Int
+  $sort: [String]
+  $search: String
+  $filter: locations_filter
+) {
+  locations(filter: $filter, limit: $limit, offset: $offset, sort: $sort, search: $search) {
+    ...Location
+  }
+}
+query GetAllLocationsForListing(
+  $offset: Int
+  $limit: Int
+  $sort: [String]
+  $search: String
+  $filter: locations_filter
+) {
+  locations: locations(filter: $filter, limit: $limit, offset: $offset, sort: $sort, search: $search) {
+    ...LocationForList
+  }
+  total: locations_aggregated(filter: $filter, search: $search) {
+    count {
+      id
+    }
+  }
+}
+query locations($filter: locations_filter, $sort: [String], $search: String, $limit: Int) {
+  locations(filter: $filter, sort: $sort, search: $search, limit: $limit) {
+    ...Location
+  }
+}
+mutation createLocation($data: create_locations_input!) {
+  create_locations_item(data: $data) {
+    id
+  }
+}
+
+mutation updateLocation($id: ID!, $data: update_locations_input!) {
+  update_locations_item(id: $id, data: $data) {
+    id
+  }
+}
+
+mutation deleteLocation($id: ID!) {
+  update_locations_item(id: $id, data: { status: "archived" }) {
+    id
+  }
+}
+
+################## --------- ###################
+
+################# Specialties ##################
+fragment Specialty on specialties {
+  id
+  name
+}
+fragment SpecialtyForList on specialties {
+  id
+  name
+  date_created
+}
+query GetAllSpecialtiesForListing(
+  $offset: Int
+  $limit: Int
+  $sort: [String]
+  $search: String
+  $filter: specialties_filter
+) {
+  specialties: specialties(filter: $filter, limit: $limit, offset: $offset, sort: $sort, search: $search) {
+    ...SpecialtyForList
+  }
+  total: specialties_aggregated(filter: $filter, search: $search) {
+    count {
+      id
+    }
+  }
+}
+query GetAllSpecialtiesForFilterUsersOnAssignments(
+  $offset: Int
+  $limit: Int
+  $sort: [String]
+  $search: String
+  $filter: specialties_filter
+) {
+  specialties(filter: $filter, limit: $limit, offset: $offset, sort: $sort, search: $search) {
+    ...Specialty
+  }
+}
+query specialties($filter: specialties_filter, $sort: [String], $search: String, $limit: Int) {
+  specialties(filter: $filter, sort: $sort, search: $search, limit: $limit) {
+    ...Specialty
+  }
+}
+mutation createSpecialty($data: create_specialties_input!) {
+  create_specialties_item(data: $data) {
+    id
+  }
+}
+
+mutation updateSpecialty($id: ID!, $data: update_specialties_input!) {
+  update_specialties_item(id: $id, data: $data) {
+    id
+  }
+}
+
+mutation deleteSpecialty($id: ID!) {
+  update_specialties_item(id: $id, data: { status: "archived" }) {
+    id
+  }
+}
+
+################## --------- ###################
+
+################# Settings ##################
+
+mutation updateAgencyEmailNotificationsSettings(
+  $id: ID!
+  $notificationsSettings: JSON!
+  $email: String!
+  $name: String!
+) {
+  update_agencies_item(
+    id: $id
+    data: { notifications_settings: $notificationsSettings, automatic_notifications_email: $email, name: $name }
+  ) {
+    id
+  }
+}
+
+################## --------- ###################
+
+############## Clinician Dashboard #############
+
+query GetDashboardCertificates($limit: Int) {
+  exams: junction_directus_users_exams(
+    limit: $limit
+    filter: { _and: [{ directus_users_id: { id: { _eq: "$CURRENT_USER" } } }, { status: { _eq: "COMPLETED" } }] }
+    sort: ["-finished_on"]
+  ) {
+    id
+    import_cert_url
+    finished_on
+    exams_id {
+      id
+      title
+    }
+  }
+  modules: junction_modules_definition_directus_users(
+    limit: $limit
+    filter: {
+      _and: [
+        { directus_users_id: { id: { _eq: "$CURRENT_USER" } } }
+        { status: { _eq: "FINISHED" }, approved: { _eq: true } }
+      ]
+    }
+    sort: ["-finished_on"]
+  ) {
+    id
+    import_cert_url
+    finished_on
+    modules_definition_id {
+      title
+    }
+  }
+}
+
+query GetClinicianDashboardItems(
+  $examsfilter: junction_directus_users_exams_filter
+  $modulesfilter: junction_modules_definition_directus_users_filter
+  $scfilter: junction_sc_definitions_directus_users_filter
+  $policiesfilter: junction_directus_users_policies_filter
+  $documentsfilter: junction_directus_users_documents_filter
+) {
+  exams: junction_directus_users_exams(filter: $examsfilter) {
+    status
+    due_date
+    exams_id {
+      id
+      title
+    }
+  }
+  modules: junction_modules_definition_directus_users(filter: $modulesfilter) {
+    status
+    due_date
+    modules_definition_id {
+      id
+      title
+    }
+  }
+  skills_checklists: junction_sc_definitions_directus_users(filter: $scfilter) {
+    status
+    due_date
+    sc_definitions_id {
+      id
+      title
+    }
+  }
+  policies: junction_directus_users_policies(filter: $policiesfilter) {
+    status
+    due_date
+    policies_id {
+      id
+      name
+    }
+  }
+  documents: junction_directus_users_documents(filter: $documentsfilter) {
+    status
+    due_date
+    documents_id {
+      id
+      title
+    }
+  }
+}
+
+query GetClinicianDashboardAnalytics {
+  exam_avg: junction_directus_users_exams_aggregated(
+    filter: { _and: [{ directus_users_id: { id: { _eq: "$CURRENT_USER" } } }, { status: { _eq: "COMPLETED" } }] }
+  ) {
+    avg {
+      score
+    }
+  }
+  exam_ceus: junction_directus_users_exams(
+    filter: { _and: [{ directus_users_id: { id: { _eq: "$CURRENT_USER" } } }, { status: { _eq: "COMPLETED" } }] }
+  ) {
+    exam_versions_id {
+      contact_hour
+    }
+  }
+  module_avg: junction_modules_definition_directus_users_aggregated(
+    filter: { _and: [{ directus_users_id: { id: { _eq: "$CURRENT_USER" } } }, { status: { _eq: "FINISHED" } }] }
+  ) {
+    avg {
+      score
+    }
+  }
+  module_ceus: junction_modules_definition_directus_users(
+    filter: {
+      _and: [
+        { directus_users_id: { id: { _eq: "$CURRENT_USER" } } }
+        { status: { _eq: "FINISHED" } }
+        { approved: { _eq: true } }
+      ]
+    }
+  ) {
+    modules_definition_id {
+      last_version {
+        contact_hour
+      }
+    }
+  }
+}
+
+query GetClinicianDashboardCompetencies {
+  total_exams: junction_directus_users_exams_aggregated(
+    filter: {
+      _and: [
+        { directus_users_id: { id: { _eq: "$CURRENT_USER" } } }
+        { status: { _in: ["NOT_STARTED", "IN_PROGRESS", "FAILED", "EXPIRED", "DUE_DATE_EXPIRED", "COMPLETED", "FAILED_TIMED_OUT"] } }
+        {
+          agency: {
+            _and: [
+              { directus_users: { status: { _eq: "active" } } }
+              { directus_users: { directus_users_id: { id: { _eq: "$CURRENT_USER" } } } }
+            ]
+          }
+        }
+      ]
+    }
+  ) {
+    count {
+      id
+    }
+  }
+  total_exams_completed: junction_directus_users_exams_aggregated(
+    filter: {
+      _and: [
+        { directus_users_id: { id: { _eq: "$CURRENT_USER" } } }
+        { status: { _in: ["COMPLETED"] } }
+        {
+          agency: {
+            _and: [
+              { directus_users: { status: { _eq: "active" } } }
+              { directus_users: { directus_users_id: { id: { _eq: "$CURRENT_USER" } } } }
+            ]
+          }
+        }
+      ]
+    }
+  ) {
+    count {
+      id
+    }
+  }
+  total_modules: junction_modules_definition_directus_users_aggregated(
+    filter: {
+      _and: [
+        { directus_users_id: { id: { _eq: "$CURRENT_USER" } } }
+        { status: { _in: ["PENDING", "FINISHED", "STARTED", "DUE_DATE_EXPIRED"] } }
+        {
+          agency: {
+            _and: [
+              { directus_users: { status: { _eq: "active" } } }
+              { directus_users: { directus_users_id: { id: { _eq: "$CURRENT_USER" } } } }
+            ]
+          }
+        }
+      ]
+    }
+  ) {
+    count {
+      id
+    }
+  }
+  total_modules_completed: junction_modules_definition_directus_users_aggregated(
+    filter: {
+      _and: [
+        { directus_users_id: { id: { _eq: "$CURRENT_USER" } } }
+        { status: { _eq: "FINISHED" } }
+        {
+          agency: {
+            _and: [
+              { directus_users: { status: { _eq: "active" } } }
+              { directus_users: { directus_users_id: { id: { _eq: "$CURRENT_USER" } } } }
+            ]
+          }
+        }
+      ]
+    }
+  ) {
+    count {
+      id
+    }
+  }
+  total_skills_checklists: junction_sc_definitions_directus_users_aggregated(
+    filter: {
+      _and: [
+        { directus_users_id: { id: { _eq: "$CURRENT_USER" } } }
+        { status: { _in: ["PENDING", "COMPLETED", "DUE_DATE_EXPIRED"] } }
+        {
+          agency: {
+            _and: [
+              { directus_users: { status: { _eq: "active" } } }
+              { directus_users: { directus_users_id: { id: { _eq: "$CURRENT_USER" } } } }
+            ]
+          }
+        }
+      ]
+    }
+  ) {
+    count {
+      id
+    }
+  }
+  total_skills_checklists_completed: junction_sc_definitions_directus_users_aggregated(
+    filter: {
+      _and: [
+        { directus_users_id: { id: { _eq: "$CURRENT_USER" } } }
+        { status: { _eq: "COMPLETED" } }
+        {
+          agency: {
+            _and: [
+              { directus_users: { status: { _eq: "active" } } }
+              { directus_users: { directus_users_id: { id: { _eq: "$CURRENT_USER" } } } }
+            ]
+          }
+        }
+      ]
+    }
+  ) {
+    count {
+      id
+    }
+  }
+  total_policies: junction_directus_users_policies_aggregated(
+    filter: {
+      _and: [
+        { directus_users_id: { id: { _eq: "$CURRENT_USER" } } }
+        { status: { _neq: "archived" } }
+        {
+          agency: {
+            _and: [
+              { directus_users: { status: { _eq: "active" } } }
+              { directus_users: { directus_users_id: { id: { _eq: "$CURRENT_USER" } } } }
+            ]
+          }
+        }
+      ]
+    }
+  ) {
+    count {
+      id
+    }
+  }
+  total_policies_completed: junction_directus_users_policies_aggregated(
+    filter: {
+      _and: [
+        { directus_users_id: { id: { _eq: "$CURRENT_USER" } } }
+        { status: { _neq: "archived" } }
+        { signed_on: { _nnull: true } }
+        {
+          agency: {
+            _and: [
+              { directus_users: { status: { _eq: "active" } } }
+              { directus_users: { directus_users_id: { id: { _eq: "$CURRENT_USER" } } } }
+            ]
+          }
+        }
+      ]
+    }
+  ) {
+    count {
+      id
+    }
+  }
+  total_documents: junction_directus_users_documents_aggregated(
+    filter: {
+      _and: [
+        { directus_users_id: { id: { _eq: "$CURRENT_USER" } } }
+        { status: { _neq: "archived" } }
+        {
+          agency: {
+            _and: [
+              { directus_users: { status: { _eq: "active" } } }
+              { directus_users: { directus_users_id: { id: { _eq: "$CURRENT_USER" } } } }
+            ]
+          }
+        }
+      ]
+    }
+  ) {
+    count {
+      id
+    }
+  }
+  total_documents_completed: junction_directus_users_documents_aggregated(
+    filter: {
+      _and: [
+        { directus_users_id: { id: { _eq: "$CURRENT_USER" } } }
+        { status: { _neq: "archived" } }
+        { read: { _nnull: true } }
+        {
+          agency: {
+            _and: [
+              { directus_users: { status: { _eq: "active" } } }
+              { directus_users: { directus_users_id: { id: { _eq: "$CURRENT_USER" } } } }
+            ]
+          }
+        }
+      ]
+    }
+  ) {
+    count {
+      id
+    }
+  }
+}
+
+################## --------- ###################
+
+############## Admin Dashboard #############
+
+query getModulesOverviewFilters(
+  $limit: Int!
+  $moduleSearch: String
+  $moduleFilters: modules_definition_filter
+  $modalitySearch: String
+  $specialitySearch: String
+  $subSpecialitySearch: String
+  $departmentsSearch: String
+  $departmentsFilters: departments_filter
+  $locationsSearch: String
+  $locationsFilters: locations_filter
+  $specialtiesSearch: String
+  $specialtiesFilters: specialties_filter
+) {
+  modalities: categories(
+    filter: { status: { _eq: "published" }, type: { _eq: "modality" } }
+    search: $modalitySearch
+    limit: $limit
+    sort: ["title"]
+  ) {
+    id
+    title
+  }
+  specialities: categories(
+    filter: { status: { _eq: "published" }, type: { _eq: "speciality" } }
+    search: $specialitySearch
+    limit: $limit
+    sort: ["title"]
+  ) {
+    id
+    title
+  }
+  subSpecialities: categories(
+    filter: { status: { _eq: "published" }, type: { _eq: "sub_speciality" } }
+    search: $subSpecialitySearch
+    limit: $limit
+    sort: ["title"]
+  ) {
+    id
+    title
+  }
+  modules: modules_definition(limit: $limit, search: $moduleSearch, filter: $moduleFilters) {
+    ...ModuleDefinition
+  }
+  departments: departments(filter: $departmentsFilters, search: $departmentsSearch, limit: $limit, sort: ["name"]) {
+    ...Department
+  }
+  specialties: specialties(filter: $specialtiesFilters, search: $specialtiesSearch, limit: $limit, sort: ["name"]) {
+    ...Specialty
+  }
+  locations: locations(filter: $locationsFilters, search: $locationsSearch, limit: $limit, sort: ["name"]) {
+    ...Location
+  }
+}
+
+query getPoliciesOverviewFilters(
+  $limit: Int
+  $departmentsFilter: departments_filter
+  $locationsFilter: locations_filter
+  $specialtiesFilter: specialties_filter
+  $policiesFilters: policies_filter
+  $departmentsSearch: String
+  $locationsSearch: String
+  $specialtiesSearch: String
+  $categorySearch: String
+  $policiesSearch: String
+) {
+  categories: categories(
+    filter: { status: { _eq: "published" }, type: { _eq: "document" } }
+    search: $categorySearch
+    limit: $limit
+    sort: ["title"]
+  ) {
+    id
+    title
+  }
+  departments: departments(filter: $departmentsFilter, search: $departmentsSearch, limit: $limit, sort: ["name"]) {
+    ...Department
+  }
+  specialties: specialties(filter: $specialtiesFilter, search: $specialtiesSearch, limit: $limit, sort: ["name"]) {
+    ...Specialty
+  }
+  locations: locations(filter: $locationsFilter, search: $locationsSearch, limit: $limit, sort: ["name"]) {
+    ...Location
+  }
+  policies: policies(filter: $policiesFilters, search: $policiesSearch, limit: $limit) {
+    id
+    name
+  }
+}
+
+query getDocumentsOverviewFilters(
+  $limit: Int
+  $departmentsFilter: departments_filter
+  $locationsFilter: locations_filter
+  $specialtiesFilter: specialties_filter
+  $documentsFilters: documents_filter
+  $departmentsSearch: String
+  $locationsSearch: String
+  $specialtiesSearch: String
+  $categorySearch: String
+  $documentsSearch: String
+) {
+  categories: categories(
+    filter: { status: { _eq: "published" }, type: { _eq: "document" } }
+    search: $categorySearch
+    limit: $limit
+    sort: ["title"]
+  ) {
+    id
+    title
+  }
+  departments: departments(filter: $departmentsFilter, search: $departmentsSearch, limit: $limit, sort: ["name"]) {
+    ...Department
+  }
+  specialties: specialties(filter: $specialtiesFilter, search: $specialtiesSearch, limit: $limit, sort: ["name"]) {
+    ...Specialty
+  }
+  locations: locations(filter: $locationsFilter, search: $locationsSearch, limit: $limit, sort: ["name"]) {
+    ...Location
+  }
+  documents: documents(filter: $documentsFilters, search: $documentsSearch, limit: $limit) {
+    id
+    title
+  }
+}
+
+query getSkillsChecklistOverviewFilters(
+  $limit: Int
+  $modalitySearch: String
+  $specialitySearch: String
+  $subSpecialitySearch: String
+  $departmentsSearch: String
+  $departmentsFilters: departments_filter
+  $locationsSearch: String
+  $locationsFilters: locations_filter
+  $specialtiesSearch: String
+  $specialtiesFilters: specialties_filter
+  $skillsChecklistFilter: sc_definitions_filter
+  $skillsChecklistSearch: String
+) {
+  modalities: categories(
+    filter: { status: { _eq: "published" }, type: { _eq: "modality" } }
+    search: $modalitySearch
+    limit: $limit
+    sort: ["title"]
+  ) {
+    id
+    title
+  }
+  specialities: categories(
+    filter: { status: { _eq: "published" }, type: { _eq: "speciality" } }
+    search: $specialitySearch
+    limit: $limit
+    sort: ["title"]
+  ) {
+    id
+    title
+  }
+  subSpecialities: categories(
+    filter: { status: { _eq: "published" }, type: { _eq: "sub_speciality" } }
+    search: $subSpecialitySearch
+    limit: $limit
+    sort: ["title"]
+  ) {
+    id
+    title
+  }
+  departments: departments(filter: $departmentsFilters, search: $departmentsSearch, limit: $limit, sort: ["name"]) {
+    ...Department
+  }
+  specialties: specialties(filter: $specialtiesFilters, search: $specialtiesSearch, limit: $limit, sort: ["name"]) {
+    ...Specialty
+  }
+  locations: locations(filter: $locationsFilters, search: $locationsSearch, limit: $limit, sort: ["name"]) {
+    ...Location
+  }
+  skillsChecklist: sc_definitions(filter: $skillsChecklistFilter, search: $skillsChecklistSearch, limit: $limit) {
+    id
+    title
+  }
+}
+
+query getExamsOverviewFilters(
+  $limit: Int!
+  $modalitySearch: String
+  $specialitySearch: String
+  $subSpecialitySearch: String
+) {
+  modalities: categories(
+    filter: { status: { _eq: "published" }, type: { _eq: "modality" } }
+    search: $modalitySearch
+    limit: $limit
+    sort: ["title"]
+  ) {
+    id
+    title
+  }
+  specialities: categories(
+    filter: { status: { _eq: "published" }, type: { _eq: "speciality" } }
+    search: $specialitySearch
+    limit: $limit
+    sort: ["title"]
+  ) {
+    id
+    title
+  }
+  subSpecialities: categories(
+    filter: { status: { _eq: "published" }, type: { _eq: "sub_speciality" } }
+    search: $subSpecialitySearch
+    limit: $limit
+    sort: ["title"]
+  ) {
+    id
+    title
+  }
+}
+
+query summaryFiltersOptions(
+  $limit: Int
+  $departmentsFilter: departments_filter
+  $locationsFilter: locations_filter
+  $specialtiesFilter: specialties_filter
+  $departmentsSearch: String
+  $locationsSearch: String
+  $specialtiesSearch: String
+) {
+  departments: departments(sort: "name", filter: $departmentsFilter, search: $departmentsSearch, limit: $limit) {
+    id
+    name
+  }
+  locations: locations(sort: "name", filter: $locationsFilter, search: $locationsSearch, limit: $limit) {
+    id
+    name
+  }
+  specialties: specialties(sort: "name", filter: $specialtiesFilter, search: $specialtiesSearch, limit: $limit) {
+    id
+    name
+  }
+}
+
+query getUserAndGroupsFilters(
+  $limit: Int
+  $departmentsFilters: departments_filter
+  $locationsFilters: locations_filter
+  $specialtiesFilters: specialties_filter
+  $departmentsSearch: String
+  $locationsSearch: String
+  $specialtiesSearch: String
+) {
+  departments: departments(filter: $departmentsFilters, search: $departmentsSearch, limit: $limit, sort: ["name"]) {
+    ...Department
+  }
+  specialties: specialties(filter: $specialtiesFilters, search: $specialtiesSearch, limit: $limit, sort: ["name"]) {
+    ...Specialty
+  }
+  locations: locations(filter: $locationsFilters, search: $locationsSearch, limit: $limit, sort: ["name"]) {
+    ...Location
+  }
+}
+
+query getAssignmentsTotalReports(
+  $documentsUnreadFilter: junction_directus_users_documents_filter
+  $documentsReadFilter: junction_directus_users_documents_filter
+  $documentsExpiredFilter: junction_directus_users_documents_filter
+  $documentsTotalFilters: junction_directus_users_documents_filter
+  $policiesUnsignedFilter: junction_directus_users_policies_filter
+  $policiesSignedFilter: junction_directus_users_policies_filter
+  $policiesExpiredFilter: junction_directus_users_policies_filter
+  $policiesUnreadFilter: junction_directus_users_policies_filter
+  $policiesTotalFilters: junction_directus_users_policies_filter
+  $examsNotStartedFilter: junction_directus_users_exams_filter
+  $examsDoneFilter: junction_directus_users_exams_filter
+  $examsInProgressFilter: junction_directus_users_exams_filter
+  $examsExpiredFilter: junction_directus_users_exams_filter
+  $examsTotalFilters: junction_directus_users_exams_filter
+  $modulesNotStartedFilter: modules_definition_filter
+  $modulesPassedFilter: modules_definition_filter
+  $modulesInProgressFilter: modules_definition_filter
+  $modulesExpiredFilter: modules_definition_filter
+  $modulesTotalFilters: modules_definition_filter
+  $skillsChecklistsTodoFilter: junction_sc_definitions_directus_users_filter
+  $skillsChecklistsDoneFilter: junction_sc_definitions_directus_users_filter
+  $skillsChecklistsExpiredFilter: junction_sc_definitions_directus_users_filter
+  $skillsCheklistsTotalFilters: junction_sc_definitions_directus_users_filter
+) {
+  documentsUnread: junction_directus_users_documents_aggregated(filter: $documentsUnreadFilter) {
+    count {
+      id
+    }
+  }
+  documentsRead: junction_directus_users_documents_aggregated(filter: $documentsReadFilter) {
+    count {
+      id
+    }
+  }
+  documentsExpired: junction_directus_users_documents_aggregated(filter: $documentsExpiredFilter) {
+    count {
+      id
+    }
+  }
+  policiesUnsigned: junction_directus_users_policies_aggregated(filter: $policiesUnsignedFilter) {
+    count {
+      id
+    }
+  }
+  policiesSigned: junction_directus_users_policies_aggregated(filter: $policiesSignedFilter) {
+    count {
+      id
+    }
+  }
+  policiesExpired: junction_directus_users_policies_aggregated(filter: $policiesExpiredFilter) {
+    count {
+      id
+    }
+  }
+  policiesUnread: junction_directus_users_policies_aggregated(filter: $policiesUnreadFilter) {
+    count {
+      id
+    }
+  }
+  examsNotStarted: junction_directus_users_exams_aggregated(filter: $examsNotStartedFilter) {
+    count {
+      id
+    }
+  }
+  examsDone: junction_directus_users_exams_aggregated(filter: $examsDoneFilter) {
+    count {
+      id
+    }
+  }
+  examsInProgress: junction_directus_users_exams_aggregated(filter: $examsInProgressFilter) {
+    count {
+      id
+    }
+  }
+  examsExpired: junction_directus_users_exams_aggregated(filter: $examsExpiredFilter) {
+    count {
+      id
+    }
+  }
+  modulesNotStarted: modules_definition_aggregated(filter: $modulesNotStartedFilter) {
+    count {
+      id
+    }
+  }
+  modulesPassed: modules_definition_aggregated(filter: $modulesPassedFilter) {
+    count {
+      id
+    }
+  }
+  modulesInProgress: modules_definition_aggregated(filter: $modulesInProgressFilter) {
+    count {
+      id
+    }
+  }
+  modulesExpired: modules_definition_aggregated(filter: $modulesExpiredFilter) {
+    count {
+      id
+    }
+  }
+
+  skillsChecklistsTodo: junction_sc_definitions_directus_users_aggregated(filter: $skillsChecklistsTodoFilter) {
+    count {
+      id
+    }
+  }
+  skillsChecklistsDone: junction_sc_definitions_directus_users_aggregated(filter: $skillsChecklistsDoneFilter) {
+    count {
+      id
+    }
+  }
+  skillsChecklistsExpired: junction_sc_definitions_directus_users_aggregated(filter: $skillsChecklistsExpiredFilter) {
+    count {
+      id
+    }
+  }
+
+  examsTotal: junction_directus_users_exams_aggregated(filter: $examsTotalFilters) {
+    count {
+      id
+    }
+  }
+  modulesTotal: modules_definition_aggregated(filter: $modulesTotalFilters) {
+    count {
+      id
+    }
+  }
+  skillsChecklistTotal: junction_sc_definitions_directus_users_aggregated(filter: $skillsCheklistsTotalFilters) {
+    count {
+      id
+    }
+  }
+  documentsTotal: junction_directus_users_documents_aggregated(filter: $documentsTotalFilters) {
+    count {
+      id
+    }
+  }
+  policiesTotal: junction_directus_users_policies_aggregated(filter: $policiesTotalFilters) {
+    count {
+      id
+    }
+  }
+}
+
+query getUserAndGroupsOverviewAssignments(
+  $documentsUnreadFilter: junction_directus_users_documents_filter
+  $documentsReadFilter: junction_directus_users_documents_filter
+  $documentsExpiredFilter: junction_directus_users_documents_filter
+  $policiesUnsignedFilter: junction_directus_users_policies_filter
+  $policiesSignedFilter: junction_directus_users_policies_filter
+  $policiesExpiredFilter: junction_directus_users_policies_filter
+  $policiesUnreadFilter: junction_directus_users_policies_filter
+  $examsNotStartedFilter: junction_directus_users_exams_filter
+  $examsDoneFilter: junction_directus_users_exams_filter
+  $examsInProgressFilter: junction_directus_users_exams_filter
+  $examsExpiredFilter: junction_directus_users_exams_filter
+  $modulesNotStartedFilter: junction_modules_definition_directus_users_filter
+  $modulesPassedFilter: junction_modules_definition_directus_users_filter
+  $modulesInProgressFilter: junction_modules_definition_directus_users_filter
+  $modulesExpiredFilter: junction_modules_definition_directus_users_filter
+  $skillsChecklistsTodoFilter: junction_sc_definitions_directus_users_filter
+  $skillsChecklistsDoneFilter: junction_sc_definitions_directus_users_filter
+  $skillsChecklistsExpiredFilter: junction_sc_definitions_directus_users_filter
+) {
+  documentsUnread: junction_directus_users_documents_aggregated(filter: $documentsUnreadFilter) {
+    count {
+      id
+    }
+  }
+  documentsRead: junction_directus_users_documents_aggregated(filter: $documentsReadFilter) {
+    count {
+      id
+    }
+  }
+  documentsExpired: junction_directus_users_documents_aggregated(filter: $documentsExpiredFilter) {
+    count {
+      id
+    }
+  }
+  policiesUnsigned: junction_directus_users_policies_aggregated(filter: $policiesUnsignedFilter) {
+    count {
+      id
+    }
+  }
+  policiesSigned: junction_directus_users_policies_aggregated(filter: $policiesSignedFilter) {
+    count {
+      id
+    }
+  }
+  policiesExpired: junction_directus_users_policies_aggregated(filter: $policiesExpiredFilter) {
+    count {
+      id
+    }
+  }
+  policiesUnread: junction_directus_users_policies_aggregated(filter: $policiesUnreadFilter) {
+    count {
+      id
+    }
+  }
+  examsNotStarted: junction_directus_users_exams_aggregated(filter: $examsNotStartedFilter) {
+    count {
+      id
+    }
+  }
+  examsDone: junction_directus_users_exams_aggregated(filter: $examsDoneFilter) {
+    count {
+      id
+    }
+  }
+  examsInProgress: junction_directus_users_exams_aggregated(filter: $examsInProgressFilter) {
+    count {
+      id
+    }
+  }
+  examsExpired: junction_directus_users_exams_aggregated(filter: $examsExpiredFilter) {
+    count {
+      id
+    }
+  }
+  modulesNotStarted: junction_modules_definition_directus_users_aggregated(filter: $modulesNotStartedFilter) {
+    count {
+      id
+    }
+  }
+  modulesPassed: junction_modules_definition_directus_users_aggregated(filter: $modulesPassedFilter) {
+    count {
+      id
+    }
+  }
+  modulesInProgress: junction_modules_definition_directus_users_aggregated(filter: $modulesInProgressFilter) {
+    count {
+      id
+    }
+  }
+  modulesExpired: junction_modules_definition_directus_users_aggregated(filter: $modulesExpiredFilter) {
+    count {
+      id
+    }
+  }
+
+  skillsChecklistsTodo: junction_sc_definitions_directus_users_aggregated(filter: $skillsChecklistsTodoFilter) {
+    count {
+      id
+    }
+  }
+  skillsChecklistsDone: junction_sc_definitions_directus_users_aggregated(filter: $skillsChecklistsDoneFilter) {
+    count {
+      id
+    }
+  }
+  skillsChecklistsExpired: junction_sc_definitions_directus_users_aggregated(filter: $skillsChecklistsExpiredFilter) {
+    count {
+      id
+    }
+  }
+}
+
+############## Data migrations #############
+
+query getRunningDataMigration {
+  data_migrations(filter: { running: { _eq: true } }) {
+    id
+    import_portal_id
+  }
+}
+
+query getMigrationRecords($filters: data_migration_records_filter) {
+  data_migration_records(filter: $filters, sort: ["date_created"]) {
+    id
+    level
+    message
+  }
+}
+
+query getMappings($filter: data_migration_mappings_filter, $limit: Int, $offset: Int) {
+  data_migration_mappings(filter: $filter, limit: $limit, offset: $offset, sort: "source_name") {
+    ...mapping
+  }
+  data_migration_mappings_aggregated(filter: $filter) {
+    count {
+      id
+    }
+  }
+}
+
+fragment mapping on data_migration_mappings {
+  id
+  content_type
+  source_name
+  target_id_string
+  target_id_number
+  exclude
+}
+
+query getMappedMappings($filter: data_migration_mappings_filter) {
+  data_migration_mappings_aggregated(filter: $filter) {
+    count {
+      id
+    }
+  }
+}
+
+mutation updateDataMappingItem($id: ID!, $data: update_data_migration_mappings_input!) {
+  update_data_migration_mappings_item(id: $id, data: $data) {
+    id
+  }
+}
+
+query getAllExistingContentForMappings {
+  exams(limit: -1, filter: { status: { _eq: "published" } }, sort: "title") {
+    id
+    title
+    agencies {
+      agencies_id {
+        id
+        name
+      }
+    }
+  }
+  modules_definition(limit: -1, filter: { status: { _eq: "published" } }, sort: "title") {
+    id
+    title
+  }
+  sc_definitions(limit: -1, filter: { status: { _eq: "published" } }, sort: "title") {
+    id
+    title
+    agency {
+      agencies_id {
+        id
+        name
+      }
+    }
+  }
+  policies(limit: -1, filter: { status: { _eq: "published" } }, sort: "name") {
+    id
+    name
+    agencies {
+      agencies_id {
+        id
+        name
+      }
+    }
+  }
+  documents(limit: -1, filter: { status: { _eq: "published" } }, sort: "title") {
+    id
+    title
+    agencies {
+      agencies_id {
+        id
+        name
+      }
+    }
+  }
+}
+
+query sysUserById($id: ID!) {
+  users_by_id(id: $id) {
+    id
+    first_name
+    last_name
+    email
+  }
+}
+
+############## Maintenance windows #############
+
+query getAllMaintenanceWindows {
+  maintenance_windows(
+    filter: { status: { _eq: "published" }, start_date_time: { _gte: "$NOW" } }
+    sort: "start_date_time"
+  ) {
+    id
+    start_date_time
+  }
+}
+
+query sysGetUserCrudCompetencies($id: ID!, $agency: String!) {
+  users_by_id(id: $id) {
+    exams(limit: 1, filter: { status: { _neq: "archived" }, agency: { id: { _eq: $agency } } }) {
+      exams_id {
+        id
+      }
+    }
+    modules(limit: 1, filter: { status: { _neq: "archived" }, agency: { id: { _eq: $agency } } }) {
+      modules_definition_id {
+        id
+      }
+    }
+    documents(limit: 1, filter: { status: { _neq: "archived" }, agency: { id: { _eq: $agency } } }) {
+      documents_id {
+        id
+      }
+    }
+    policies(limit: 1, filter: { status: { _neq: "archived" }, agency: { id: { _eq: $agency } } }) {
+      policies_id {
+        id
+      }
+    }
+    sc_definitions(limit: 1, filter: { status: { _neq: "archived" }, agency: { id: { _eq: $agency } } }) {
+      sc_definitions_id {
+        id
+      }
+    }
+  }
+}
+
+
+############## Feature flags #############
+
+query getFeatureFlags {
+  feature_flags {
+    id
+    flag_key
+    enabled
+  }
+}

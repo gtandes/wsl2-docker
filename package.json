@@ -1,0 +1,49 @@
+{
+  "name": "hsh",
+  "version": "0.0.0",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "dotenv -- turbo run dev --parallel",
+    "cms": "dotenv -- turbo run dev --filter=cms",
+    "cms-simple": "dotenv -- turbo run simple-start --filter=cms",
+    "web": "dotenv -- turbo run dev --filter=web",
+    "db": "dotenv -- turbo run dev --filter=db",
+    "lrs": "dotenv -- turbo run dev --filter=lrs",
+    "db:reset": "rm -rf apps/db/db-data",
+    "lint": "prettier --check . && turbo run lint",
+    "format": "prettier --write .",
+    "codegen": "cd packages/api && pnpm run build",
+    "snapshot": "dotenv -- turbo run snapshot --filter=cms",
+    "data:export": "dotenv -- turbo run data:export --filter=cms",
+    "boiler:update": "./scripts/update-fork.sh",
+    "email": "cd packages/emails && pnpm run email",
+    "email:patch": "cd packages/emails && pnpm run devpatch"
+  },
+  "devDependencies": {
+    "@types/mustache": "^4.2.5",
+    "eslint-config-custom": "workspace:*",
+    "prettier": "2.8.8",
+    "turbo": "1.10.2"
+  },
+  "engines": {
+    "node": "18.16.x",
+    "pnpm": ">=8.x.x"
+  },
+  "engineStrict": true,
+  "dependencies": {
+    "@aws-sdk/credential-providers": "^3.726.1",
+    "@aws-sdk/s3-request-presigner": "^3.726.1",
+    "@aws-sdk/util-format-url": "^3.723.0",
+    "@smithy/hash-node": "^4.0.1",
+    "@smithy/protocol-http": "^5.0.1",
+    "@smithy/url-parser": "^4.0.1",
+    "csv-stringify": "^6.4.6",
+    "dotenv-cli": "7.2.1",
+    "mustache": "^4.2.0"
+  },
+  "packageManager": "pnpm@8.6.3"
+}

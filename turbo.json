@@ -1,0 +1,34 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "globalEnv": [
+    "NEXT_PUBLIC_PASSWORD_RESET_URL_ALLOW_LIST",
+    "NEXT_PUBLIC_ENV_NAME",
+    "NEXT_PUBLIC_MIGRATION_PASSWORD",
+    "NEXT_PUBLIC_FULLSTORY_ORG_ID",
+    "NEXT_PUBLIC_SENTRY_DSN"
+  ],
+  "pipeline": {
+    "lint": {
+      "outputs": []
+    },
+    "dev": {
+      "cache": false
+    },
+    "dev:web": {
+      "outputs": ["dist/**", ".next/**"],
+      "env": ["CMS_HOST", "CMS_PORT", "LRS_HOST", "NEXT_PUBLIC_*"]
+    },
+    "snapshot": {
+      "cache": false
+    },
+    "start": {
+      "cache": false
+    },
+    "simple-start": {
+      "cache": false
+    },
+    "data:export": {
+      "cache": false
+    }
+  }
+}

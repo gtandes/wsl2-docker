@@ -1,0 +1,48 @@
+-- ALTER TABLE directus_users
+--     DISABLE TRIGGER ALL;
+-- ALTER TABLE exams
+--     DISABLE TRIGGER ALL;
+-- ALTER TABLE junction_directus_users_exams
+--     DISABLE TRIGGER ALL;
+--
+-- -- delete
+-- -- from agencies
+-- -- where import_portal_id is not null;
+--
+-- delete
+-- from directus_users
+-- where imported is true;
+--
+-- delete
+-- from exams
+-- where import_is_shell is true;
+--
+-- delete
+-- from junction_directus_users_exams je
+-- where import_subscription_id is not null;
+--
+-- delete
+-- from modules_definition
+-- where import_is_shell is true;
+--
+-- delete
+-- from junction_modules_definition_directus_users je
+-- where import_subscription_id is not null;
+--
+-- delete
+-- from sc_definitions
+-- where import_is_shell is true;
+--
+-- delete
+-- from junction_sc_definitions_directus_users je
+-- where import_survey_subscription_id is not null;
+--
+-- TRUNCATE data_migrations CASCADE;
+--
+-- ALTER TABLE directus_users
+--     ENABLE TRIGGER ALL;
+-- ALTER TABLE exams
+--     ENABLE TRIGGER ALL;
+-- ALTER TABLE junction_directus_users_exams
+--     ENABLE TRIGGER ALL;
+--

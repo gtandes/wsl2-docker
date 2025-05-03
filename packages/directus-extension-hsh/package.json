@@ -1,0 +1,266 @@
+{
+  "name": "directus-extension-hsh",
+  "version": "1.0.0",
+  "type": "commonjs",
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.423.0",
+    "@aws-sdk/lib-storage": "^3.423.0",
+    "@directus/errors": "^0.0.2",
+    "@directus/utils": "^11.0.1",
+    "@peculiar/webcrypto": "^1.4.3",
+    "@react-email/components": "^0.0.7",
+    "@react-email/render": "^0.0.7",
+    "csv-stringify": "^6.4.6",
+    "date-fns": "^2.30.0",
+    "emails": "workspace:*",
+    "express-validator": "^7.0.1",
+    "helmet": "^7.0.0",
+    "http-proxy-middleware": "^2.0.6",
+    "jsonwebtoken": "^9.0.0",
+    "lodash": "^4.17.21",
+    "mime-types": "^2.1.35",
+    "p-limit": "^6.2.0",
+    "puppeteer": "^24.1.0",
+    "react": "18.2.0",
+    "s3proxy": "^2.0.1",
+    "types": "*",
+    "unzipper": "^0.10.14",
+    "uuid": "^9.0.0"
+  },
+  "directus:extension": {
+    "host": "^10.1.7",
+    "type": "bundle",
+    "path": {
+      "app": "dist/app.js",
+      "api": "dist/api.js"
+    },
+    "entries": [
+      {
+        "type": "endpoint",
+        "name": "exams",
+        "source": "src/endpoints/exams/start.ts"
+      },
+      {
+        "type": "endpoint",
+        "name": "exams",
+        "source": "src/endpoints/exams/question.ts"
+      },
+      {
+        "type": "endpoint",
+        "name": "competencies",
+        "source": "src/endpoints/competencies/reports.ts"
+      },
+      {
+        "type": "endpoint",
+        "name": "agencies",
+        "source": "src/endpoints/agencies/index.ts"
+      },
+      {
+        "type": "hook",
+        "name": "exams",
+        "source": "src/hooks/exams/exam-progress-cron.ts"
+      },
+      {
+        "type": "endpoint",
+        "name": "assignments",
+        "source": "src/endpoints/assignments/index.ts"
+      },
+      {
+        "type": "hook",
+        "name": "modules",
+        "source": "src/hooks/modules/upload-to-aws.ts"
+      },
+      {
+        "type": "endpoint",
+        "name": "modules",
+        "source": "src/endpoints/modules/index.ts"
+      },
+      {
+        "type": "endpoint",
+        "name": "modules",
+        "source": "src/endpoints/modules/lrs.ts"
+      },
+      {
+        "type": "hook",
+        "name": "admin-welcome-email",
+        "source": "src/hooks/users/admin-welcome-email.ts"
+      },
+      {
+        "type": "hook",
+        "name": "users",
+        "source": "src/hooks/users/welcome-email.ts"
+      },
+      {
+        "type": "hook",
+        "name": "exam-emails",
+        "source": "src/hooks/exams/emails/index.ts"
+      },
+      {
+        "type": "hook",
+        "name": "modules-emails",
+        "source": "src/hooks/modules/emails/index.ts"
+      },
+      {
+        "type": "hook",
+        "name": "general-document-read",
+        "source": "src/hooks/document/emails/document-read.ts"
+      },
+      {
+        "type": "hook",
+        "name": "general-policy-signed",
+        "source": "src/hooks/policies/emails/policy-signed.ts"
+      },
+      {
+        "type": "hook",
+        "name": "general-sc-completion",
+        "source": "src/hooks/skills-checklists/emails/sc-completion.ts"
+      },
+      {
+        "type": "hook",
+        "name": "clinician-expiring-competencies-reminder-cron",
+        "source": "src/hooks/crons/clinician-expiring-competencies-reminder.ts"
+      },
+      {
+        "type": "hook",
+        "name": "clinician-due-date-reminder-cron",
+        "source": "src/hooks/crons/clinician-due-date-reminder.ts"
+      },
+      {
+        "type": "hook",
+        "name": "clinician-nagging-due-date-reminder-cron",
+        "source": "src/hooks/crons/clinician-nagging-due-date-reminder.ts"
+      },
+      {
+        "type": "hook",
+        "name": "clinician-pending-assignments-reminder-cron",
+        "source": "src/hooks/crons/clinician-pending-assignments-reminder.ts"
+      },
+      {
+        "type": "hook",
+        "name": "upcoming-expiration-cron",
+        "source": "src/hooks/crons/check-upcoming-expiration.ts"
+      },
+      {
+        "type": "hook",
+        "name": "upcoming-due-date-cron",
+        "source": "src/hooks/crons/check-upcoming-due-date.ts"
+      },
+      {
+        "type": "hook",
+        "name": "competencies",
+        "source": "src/hooks/competencies/index.ts"
+      },
+      {
+        "type": "endpoint",
+        "name": "api",
+        "source": "src/endpoints/api/index.ts"
+      },
+      {
+        "type": "endpoint",
+        "name": "clinician",
+        "source": "src/endpoints/clinician/index.ts"
+      },
+      {
+        "type": "endpoint",
+        "name": "user",
+        "source": "src/endpoints/user/index.ts"
+      },
+      {
+        "type": "endpoint",
+        "name": "v2/assignments",
+        "source": "src/endpoints/assignments/v2/index.ts"
+      },
+      {
+        "type": "endpoint",
+        "name": "reports",
+        "source": "src/endpoints/reports/index.ts"
+      },
+      {
+        "type": "endpoint",
+        "name": "integration/bullhorn",
+        "source": "src/endpoints/integration/bullhorn.ts"
+      },
+      {
+        "type": "endpoint",
+        "name": "integration",
+        "source": "src/endpoints/custom-tab/index.ts"
+      },
+      {
+        "type": "hook",
+        "name": "clinician-weekly-expiring-competencies-reminder-cron",
+        "source": "src/hooks/crons/clinician-weekly-expiring-competency-reminder.ts"
+      },
+      {
+        "type": "hook",
+        "name": "manager-weekly-expiring-competency-report",
+        "source": "src/hooks/crons/manager-weekly-expiring-competency-report.ts"
+      },
+      {
+        "type": "hook",
+        "name": "expiring-competencies",
+        "source": "src/hooks/crons/reassign-expiring-competency"
+      },
+      {
+        "type": "hook",
+        "name": "integrity-advocate-cron",
+        "source": "src/hooks/crons/integrity-advocate-cron.ts"
+      },
+      {
+        "type": "endpoint",
+        "name": "exams",
+        "source": "src/endpoints/exams/timer.ts"
+      },
+      {
+        "type": "endpoint",
+        "name": "exams",
+        "source": "src/endpoints/exams/time.ts"
+      },
+      {
+        "type": "endpoint",
+        "name": "logs",
+        "source": "src/endpoints/logs/index.ts"
+      },
+      {
+        "type": "endpoint",
+        "name": "integrity-advocate",
+        "source": "src/endpoints/integrity-advocate/index.ts"
+      },
+      {
+        "type": "endpoint",
+        "name": "certificates",
+        "source": "src/endpoints/certificates/index.ts"
+      },
+      {
+        "type": "endpoint",
+        "name": "hsh-webhooks",
+        "source": "src/endpoints/webhooks/index.ts"
+      }
+    ]
+  },
+  "description": "Please enter a description for your extension",
+  "icon": "extension",
+  "keywords": [
+    "directus",
+    "directus-extension",
+    "directus-custom-bundle"
+  ],
+  "scripts": {
+    "build": "directus-extension build --no-minify",
+    "dev": "directus-extension build -w --no-minify",
+    "link": "directus-extension link",
+    "postinstall": "pnpm build",
+    "add": "directus-extension add"
+  },
+  "devDependencies": {
+    "@directus/extensions-sdk": "10.1.7",
+    "@directus/types": "^10.1.6",
+    "@types/express-http-proxy": "^1.6.5",
+    "@types/jsonwebtoken": "^9.0.4",
+    "@types/lodash": "4.14.199",
+    "@types/mime-types": "^2.1.3",
+    "@types/node": "^20.8.5",
+    "@types/unzipper": "^0.10.7",
+    "@types/uuid": "^9.0.2",
+    "typescript": "^5.2.2"
+  }
+}

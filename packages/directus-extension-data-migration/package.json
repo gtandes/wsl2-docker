@@ -1,0 +1,51 @@
+{
+  "name": "directus-extension-data-migration",
+  "description": "Please enter a description for your extension",
+  "icon": "extension",
+  "version": "1.0.0",
+  "keywords": [
+    "directus",
+    "directus-extension",
+    "directus-custom-bundle"
+  ],
+  "type": "module",
+  "directus:extension": {
+    "type": "bundle",
+    "path": {
+      "app": "dist/app.js",
+      "api": "dist/api.cjs"
+    },
+    "entries": [
+      {
+        "type": "hook",
+        "name": "migration",
+        "source": "src/migration/index.ts"
+      },
+      {
+        "type": "endpoint",
+        "name": "migration",
+        "source": "src/migration/endpoints.ts"
+      }
+    ],
+    "host": "^10.2.0"
+  },
+  "scripts": {
+    "build": "directus-extension build",
+    "dev": "directus-extension build -w --no-minify",
+    "link": "directus-extension link",
+    "postinstall": "pnpm build",
+    "add": "directus-extension add"
+  },
+  "devDependencies": {
+    "@directus/extensions-sdk": "10.2.0",
+    "@types/uuid": "^9.0.2",
+    "pino": "^8.17.1"
+  },
+  "dependencies": {
+    "express-validator": "^7.0.1",
+    "knex": "^3.1.0",
+    "mysql": "^2.18.1",
+    "types": "*",
+    "uuid": "^9.0.0"
+  }
+}

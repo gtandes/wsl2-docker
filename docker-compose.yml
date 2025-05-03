@@ -1,0 +1,67 @@
+version: "3"
+
+services:
+  db:
+    container_name: hsh_db
+    image: postgres:14.1-alpine
+    environment:
+      POSTGRES_DB: ${DB_DATABASE}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    restart: on-failure
+    volumes:
+      - hsh-dev-db:/var/lib/postgresql/data
+    ports:
+      - $DB_PORT:$DB_PORT
+    healthcheck:
+      test:
+        ["CMD", "pg_isready", "-q", "-d", "${DB_DATABASE}", "-U", "${DB_USER}"]
+      timeout: 20s
+      interval: 10s
+      retries: 10
+
+  web:
+    container_name: hsh_web
+    build:
+      context: .
+      dockerfile: ./apps/web/Dockerfile
+    restart: on-failure
+    ports:
+      - $PORT:$PORT
+    env_file:
+      - ./.env
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: wget --no-verbose --tries=1 --spider http://localhost:${PORT} || exit 1
+      timeout: 20s
+      interval: 10s
+      retries: 10
+
+  cms:
+    container_name: hsh_cms
+    build:
+      context: .
+      dockerfile: ./apps/cms/Dockerfile
+    restart: on-failure
+    env_file:
+      - ./.env
+    depends_on:
+      web:
+        condition: service_healthy
+    healthcheck:
+      test: wget --no-verbose --tries=1 --spider http://localhost:${CMS_PORT}/server/health || exit 1
+      timeout: 20s
+      interval: 10s
+      retries: 10
+
+# Define a network, which allows containers to communicate
+# with each other, by using their container name as a hostname
+# networks:
+#   app_network:
+#     external: true
+
+volumes:
+  hsh-dev-db:
+    driver: local

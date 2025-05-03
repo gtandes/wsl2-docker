@@ -1,0 +1,12 @@
+.next/
+package-lock.json
+node_modules/
+pnpm-lock.yaml
+generated/
+seed/
+schema.yaml
+**/dist/
+.vscode/
+packages/api/
+*.yml
+*.yaml
