@@ -46,5 +46,5 @@ RUN cd apps/web && pnpm build
 # RUN pnpm turbo run build --filter=web
 
 # Set the command to start the 'web' app
-CMD ["pnpm", "--filter=web", "start"] # Using filter syntax is often more robust
+CMD ["pnpm", "--filter=web", "start"]
 # Or: CMD cd apps/web && pnpm start
