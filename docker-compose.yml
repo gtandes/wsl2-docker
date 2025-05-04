@@ -47,6 +47,9 @@ services:
       - $CMS_PORT:$CMS_PORT
     env_file:
       - ./.env
+    environment:
+      # Add this line to force disable extensions by pointing to a non-existent path
+      EXTENSIONS_PATH: ./no_extensions_during_install
     depends_on:
       db:
         condition: service_healthy
