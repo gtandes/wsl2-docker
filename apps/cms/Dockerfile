@@ -34,5 +34,16 @@ COPY . .
 RUN pnpm install --filter eslint-config-custom --frozen-lockfile
 RUN pnpm install --filter tsconfig --frozen-lockfile
 RUN pnpm install --filter cms --frozen-lockfile
- 
-CMD cd apps/cms && pnpm start
+
+# --- CHANGES START HERE ---
+
+# Set the working directory to the specific app's folder
+WORKDIR /app/apps/cms
+
+# Use the 'simple-start' script via npm run (exec form)
+CMD ["npm", "run", "simple-start"]
+
+# --- CHANGES END HERE ---
+
+# This line is replaced by the lines above:
+# CMD cd apps/cms && pnpm start

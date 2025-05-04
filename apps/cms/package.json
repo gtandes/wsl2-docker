@@ -11,7 +11,7 @@
     "simple-start": "npm run directus -- start",
     "snapshot": "npm run directus -- schema snapshot --yes ./schema.yaml",
     "schema:apply": "echo 'Applying schema' && npm run directus -- schema apply --yes ./schema.yaml && echo '✅'",
-    "bootstrap": "echo 'Bootstraping DB' && npm run directus -- database install &> /dev/null && echo '✅'",
+    "bootstrap": "echo 'Bootstraping DB' && npm run directus -- database install && echo '✅'",
     "migrate:directus": "echo 'Running Directus Migrations' && mv ./extensions/migrations ./extensions/migrations_pre && npm run directus -- database migrate:latest && mv ./extensions/migrations_pre ./extensions/migrations && echo '✅'",
     "migrate:internal": "echo 'Running Internal Migrations' && npm run directus -- database migrate:latest && echo '✅'",
     "data:export": "echo 'Exporting data' && npm run directus -- data:export && echo '✅'",
