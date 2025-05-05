@@ -1,4 +1,4 @@
-# apps/cms/Dockerfile (Corrected v6 Structure)
+# apps/cms/Dockerfile (REVISED STRUCTURE v7 - Adding PUPPETEER_SKIP_DOWNLOAD)
 
 # --- Stage 1: Install Deps & Prepare Deployment ---
     FROM node:18-alpine AS builder
@@ -14,6 +14,9 @@
     RUN corepack enable && corepack prepare pnpm@10.0.0 --activate
     ENV PNPM_HOME=/root/.local/share/pnpm
     ENV PATH=$PATH:$PNPM_HOME
+    
+    # *** ADD THIS ENV VARIABLE TO SKIP ALL PUPPETEER DOWNLOADS ***
+    ENV PUPPETEER_SKIP_DOWNLOAD=true
     
     WORKDIR /app_build
     
@@ -33,7 +36,7 @@
     
     # Install ALL dependencies
     RUN rm -rf /root/.pnpm-store # Keep cache clear for this test
-    RUN pnpm install --frozen-lockfile
+    RUN pnpm install --frozen-lockfile # Puppeteer postinstall should now respect PUPPETEER_SKIP_DOWNLOAD
     
     # Copy all source code needed for build/runtime
     COPY . .
@@ -66,7 +69,8 @@
         font-noto-emoji \
         fontconfig
     ENV TZ=Asia/Singapore
-    ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+    # Keep these ENV vars for runtime, pointing to the installed chromium
+    ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true # Can stay, harmless
     ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
     
     # Set final working directory
