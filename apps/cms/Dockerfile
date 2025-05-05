@@ -47,7 +47,7 @@
     
     # Create deployment directory structure
     RUN mkdir /app_deploy
-    RUN pnpm deploy --filter cms --prod /app_deploy/apps/cms
+    RUN pnpm deploy --filter cms /app_deploy/apps/cms
     
     
     # --- Stage 2: Final Runtime Image ---
