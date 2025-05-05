@@ -61,6 +61,8 @@ COPY . .
 # 5. Build the Sentry extension (and potentially others if needed)
 #    Run this from the monorepo root /app
 RUN pnpm --filter directus-extension-hook-sentry build
+RUN pnpm --filter directus-extension-data-migration build
+RUN pnpm --filter directus-extension-hsh build
 #    Optionally, if other extensions/apps need building:
 # RUN pnpm turbo run build --filter=cms --filter=directus-extension-hsh
 

@@ -248,7 +248,6 @@
     "build": "directus-extension build --no-minify",
     "dev": "directus-extension build -w --no-minify",
     "link": "directus-extension link",
-    "postinstall": "pnpm build",
     "add": "directus-extension add"
   },
   "devDependencies": {
