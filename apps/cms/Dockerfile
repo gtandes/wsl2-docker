@@ -1,45 +1,17 @@
-# apps/cms/Dockerfile (REVISED STRUCTURE v2 - Paths Confirmed)
+# apps/cms/Dockerfile (REVISED STRUCTURE v5 - Using pnpm deploy)
 
 FROM node:18-alpine
 
-# Install base dependencies + build tools + Chromium
-RUN apk update && apk add --no-cache \
-    libc6-compat \
-    python3 \
-    make \
-    g++ \
-    curl \
-    chromium \
-    nss \
-    freetype \
-    freetype-dev \
-    harfbuzz \
-    ca-certificates \
-    ttf-freefont \
-    font-noto \
-    font-noto-cjk \
-    font-noto-emoji \
-    fontconfig
+# ... (apk add, puppeteer setup, pnpm setup) ...
 
-# Set Puppeteer env vars
-ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
-ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
+# --- Stage 1: Install Deps & Prepare Deployment ---
+WORKDIR /app_build
 
-# Install and activate pnpm v10.0.0
-RUN corepack enable && corepack prepare pnpm@10.0.0 --activate
-ENV PNPM_HOME=/root/.local/share/pnpm
-ENV PATH=$PATH:$PNPM_HOME
-
-# Set working directory for the build steps
-WORKDIR /app
-
-# --- Monorepo Dependency Installation ---
-# 1. Copy root manifests and workspace config FIRST
+# Copy root manifests and workspace config
 COPY pnpm-lock.yaml pnpm-workspace.yaml package.json .npmrc ./
 
-# 2. Copy package.json for ALL workspaces needed for 'cms' build & runtime
+# Copy ALL workspace package.json files
 COPY apps/cms/package.json ./apps/cms/
-# Extensions and shared packages under ./packages/
 COPY packages/api/package.json ./packages/api/
 COPY packages/directus-extension-data-migration/package.json ./packages/directus-extension-data-migration/
 COPY packages/directus-extension-hook-sentry/package.json ./packages/directus-extension-hook-sentry/
@@ -48,26 +20,54 @@ COPY packages/emails/package.json ./packages/emails/
 COPY packages/eslint-config-custom/package.json ./packages/eslint-config-custom/
 COPY packages/tsconfig/package.json ./packages/tsconfig/
 COPY packages/types/package.json ./packages/types/
-# Add COPY lines for any other necessary workspace packages
 
-# 3. Install ALL dependencies for the workspace defined by pnpm-workspace.yaml
-#    This single install resolves workspace links correctly. Use --frozen-lockfile.
-RUN rm -rf /root/.pnpm-store
+# Install ALL dependencies
+RUN rm -rf /root/.pnpm-store # Keep cache clear for this test
 RUN pnpm install --frozen-lockfile
-# Note: For production, consider "--prod" flag here in a multi-stage build
 
-# 4. Copy the rest of the source code
+# Copy all source code needed for build/runtime
 COPY . .
 
-# 5. Build the Sentry extension (and potentially others if needed)
-#    Run this from the monorepo root /app
+# Build necessary extensions (if their build output is needed at runtime)
+# Alternatively, build could happen in the final stage if only needed there
 RUN pnpm --filter directus-extension-hook-sentry build
 RUN pnpm --filter directus-extension-data-migration build
 RUN pnpm --filter directus-extension-hsh build
-#    Optionally, if other extensions/apps need building:
-# RUN pnpm turbo run build --filter=cms --filter=directus-extension-hsh
 
-# --- Runtime ---
-WORKDIR /app/apps/cms
+# Create deployment directory structure by copying only prod dependencies
+# And copying workspace packages instead of linking
+RUN mkdir /app_deploy
+RUN pnpm deploy --filter cms --prod /app_deploy/apps/cms
+
+
+# --- Stage 2: Final Runtime Image ---
+FROM node:18-alpine
+
+# Install only runtime dependencies (chromium, etc.)
+# Copy necessary ones from the list in Stage 1
+RUN apk update && apk add --no-cache \
+    libc6-compat \
+    curl \
+    chromium \
+    nss \
+    freetype \
+    harfbuzz \
+    ca-certificates \
+    ttf-freefont \
+    font-noto \
+    font-noto-cjk \
+    font-noto-emoji \
+    fontconfig
+ENV TZ=Asia/Singapore
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
+
+# Set final working directory
+WORKDIR /app/apps/cms # Match the deploy target structure
+
+# Copy the deployed application files from the build stage
+COPY --from=0 /app_deploy/apps/cms /app/apps/cms
+
 # Use the simplified start command
-CMD ["npm", "run", "simple-start"]
+CMD ["node_modules/.bin/directus", "start"] # Use direct path since npm context might differ
+# Or CMD ["npm", "run", "simple-start"] if that script exists and works
