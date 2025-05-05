@@ -31,9 +31,9 @@ ENV PATH=$PATH:$PNPM_HOME
 # Build the app
 WORKDIR /app
 COPY . .
-RUN pnpm install --filter eslint-config-custom --frozen-lockfile
-RUN pnpm install --filter tsconfig --frozen-lockfile
-RUN pnpm install --filter cms --frozen-lockfile
+RUN pnpm install --filter eslint-config-custom
+RUN pnpm install --filter tsconfig
+RUN pnpm install --filter cms
 
 # --- CHANGES START HERE ---
 
