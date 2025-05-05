@@ -63,7 +63,7 @@
         font-noto-emoji \
         fontconfig
     ENV TZ=Asia/Singapore
-    ENV PUPPETEER_SKIP_DOWNLOAD=true # Still needed if any runtime dep uses puppeteer
+    ENV PUPPETEER_SKIP_DOWNLOAD=true
     ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
     
     # Install pnpm again (needed for install command in this stage)
@@ -76,7 +76,7 @@
     # Copy ONLY necessary manifests/configs for production install
     COPY pnpm-lock.yaml pnpm-workspace.yaml package.json .npmrc ./
     COPY apps/cms/package.json ./apps/cms/
-    COPY packages/api/package.json ./packages/api/ # Copy packages cms depends on
+    COPY packages/api/package.json ./packages/api/
     COPY packages/directus-extension-data-migration/package.json ./packages/directus-extension-data-migration/
     COPY packages/directus-extension-hook-sentry/package.json ./packages/directus-extension-hook-sentry/
     COPY packages/directus-extension-hsh/package.json ./packages/directus-extension-hsh/
@@ -107,4 +107,4 @@
     WORKDIR /app/apps/cms
     
     # Use the simplified start command
-    CMD ["../node_modules/.bin/directus", "start"] # Adjust path to node_modules relative to final WORKDIR
+    CMD ["../node_modules/.bin/directus", "start"]
