@@ -19,6 +19,7 @@ import { UserRole } from "../../../types/roles";
 import { Spinner } from "../../../components/Spinner";
 import { Tooltip } from "../../../components/utils/Tooltip";
 import { useFeatureFlags } from "../../../hooks/useFeatureFlags";
+import NotAuthorized from "../../not-authorized";
 
 const detailsSchema = z.object({
   organization_name: z.string().min(1).max(255),
@@ -620,6 +621,12 @@ export const AgencyNotificationsToggleForm: React.FC<
     values.userManager?.module_completion,
   ]);
 
+  if (
+    currentUser?.role === UserRole.UsersManager ||
+    currentUser?.role === UserRole.CredentialingUser
+  ) {
+    return <NotAuthorized />;
+  }
   return (
     <Accordion
       button={

@@ -18,6 +18,32 @@ interface Props {
   children: React.ReactNode;
 }
 
+const fetchWithTimeout = (
+  url: string,
+  options: RequestInit = {},
+  timeout: number = 60000
+): Promise<Response> => {
+  return new Promise<Response>((resolve, reject) => {
+    const controller = new AbortController();
+    const id = setTimeout(() => {
+      controller.abort();
+      reject(new Error("Request timed out"));
+    }, timeout);
+
+    options.signal = controller.signal;
+
+    fetch(url, options)
+      .then((response) => {
+        clearTimeout(id);
+        resolve(response);
+      })
+      .catch((err) => {
+        clearTimeout(id);
+        reject(err);
+      });
+  });
+};
+
 const asyncAuthLink = setContext(
   () =>
     new Promise(async (resolve) => {
@@ -38,12 +64,12 @@ const asyncAuthLink = setContext(
 
 const directusHttpLink = new HttpLink({
   uri: "/cms/graphql",
-  fetch,
+  fetch: (url, options) => fetchWithTimeout(url.toString(), options, 60000),
 });
 
 const directusSystemHttpLink = new HttpLink({
   uri: "/cms/graphql/system",
-  fetch,
+  fetch: (url, options) => fetchWithTimeout(url.toString(), options, 60000),
 });
 
 const httpLink = ApolloLink.split(
@@ -92,7 +118,6 @@ const errorLink = onError(({ graphQLErrors, networkError }) => {
 });
 
 // const sentryLink = new SentryLink();
-
 const client = new ApolloClient({
   link: from([asyncAuthLink, scalarLink, errorLink, httpLink]),
   cache: new InMemoryCache(),

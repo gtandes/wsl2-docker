@@ -235,7 +235,11 @@ export default defineEndpoint((router, { services, logger, database }) => {
         }
         await trx.commit();
 
-        res.sendStatus(200);
+        const responseQuestion = {
+          exam_result_length: examResults.length,
+        };
+
+        return res.status(200).json(responseQuestion);
       } catch (e) {
         if (trx) await trx.rollback();
         logger.error(`${LOG_PREFIX}: ${e}. Request body: ${JSON.stringify(req.body)}`);

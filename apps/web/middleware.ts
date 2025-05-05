@@ -9,11 +9,14 @@ const rewriteRule = (
   if (!process.env.CMS_HOST) throw new Error("Missing CMS_HOST env var");
 
   const newUrl = new URL(request.url);
+  const originalUrl = request.url;
   newUrl.host = process.env.CMS_HOST;
   newUrl.port = process.env.CMS_PORT || "";
   newUrl.protocol = "http";
   newUrl.pathname = newUrl.pathname.replace(replacePath, "");
-  return NextResponse.rewrite(newUrl);
+  const response = NextResponse.rewrite(newUrl);
+  response.headers.set("x-original-url", originalUrl);
+  return response;
 };
 
 export function middleware(request: NextRequest) {

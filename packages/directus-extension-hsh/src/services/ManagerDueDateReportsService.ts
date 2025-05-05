@@ -1,5 +1,5 @@
-import { format, formatISO, isValid, parseISO } from "date-fns";
-import { CompetencyState, DirectusStatus, ExpiryCompetency, Recipient, UserRole } from "types";
+import { format, formatISO } from "date-fns";
+import { DirectusStatus, ExpiryCompetency, Recipient, UserRole } from "types";
 
 type PaginationOptions = {
   page?: number;
@@ -12,89 +12,8 @@ const roleToSetting: Record<RoleId, string> = {
   "fb7c8da4-685c-11ee-8c99-0242ac120002": "user_manager",
 };
 
-export enum CompetencyContentType {
-  EXAM = "Exam",
-  POLICY = "Policy",
-  DOCUMENT = "Document",
-  Module = "Module",
-  SKILL_CHECKLIST = "Skill Checklist",
-}
-
-export interface BaseCompetencyData {
-  competency_status: string;
-  due_date: string;
-  title: string;
-  first_name: string;
-  last_name: string;
-  last_access: string | null;
-  email: string;
-  directus_users_status: string;
-  agency_status: string;
-  agency_junction_id: string;
-  contentType: CompetencyContentType;
-  departments: string[];
-  locations: string[];
-  supervisors: string[];
-}
-
-export interface ExamCompetencyData extends BaseCompetencyData {
-  allowed_attempts: number;
-  attempts_used: number;
-}
-
-export interface PolicyCompetencyData extends BaseCompetencyData {
-  signed_on: string | null;
-}
-
-export interface DocumentCompetencyData extends BaseCompetencyData {
-  read: boolean;
-}
-
-export type CompetencyData = ExamCompetencyData | PolicyCompetencyData | DocumentCompetencyData | BaseCompetencyData;
-
-export interface GetUpcomingDueDateResult {
-  getUpcomingDueDate(
-    agencyId: string,
-    userRole: RoleId,
-    userId: string,
-    options?: PaginationOptions,
-  ): Promise<CompetencyData[]>;
-}
-
-const isPolicy = (result: CompetencyData): result is PolicyCompetencyData =>
-  result.contentType === CompetencyContentType.POLICY;
-const isDocument = (result: CompetencyData): result is DocumentCompetencyData =>
-  result.contentType === CompetencyContentType.DOCUMENT;
-
-const policiesAndDocumentsStatus = (result: CompetencyData): CompetencyState => {
-  let status: CompetencyState = CompetencyState.EXPIRED;
-  const expired = result.due_date ? new Date().getTime() >= new Date(result.due_date).getTime() : false;
-  if (isPolicy(result)) {
-    if (result.signed_on) {
-      status = CompetencyState.SIGNED;
-    }
-    if (!result.signed_on) {
-      status = CompetencyState.UNSIGNED;
-    }
-  } else if (isDocument(result)) {
-    if (result.read) {
-      status = CompetencyState.READ;
-    }
-    if (!result.read) {
-      status = CompetencyState.UNREAD;
-    }
-  }
-  if (result.competency_status === CompetencyState.DUE_DATE_EXPIRED) {
-    status = CompetencyState.DUE_DATE_EXPIRED;
-  }
-  if (expired) {
-    status = CompetencyState.EXPIRED;
-  }
-  return status;
-};
-
-interface EnrichedResult extends Record<string, any> {
-  contentType: CompetencyContentType;
+interface EnrichedResult extends ExpiryCompetency {
+  contentType: string;
   departments: string[];
   locations: string[];
   supervisors: string[];
@@ -117,7 +36,7 @@ interface SupervisorResult {
 }
 
 export interface ICsvService {
-  transformToCSV(data: CompetencyData[]): string;
+  transformToCSV(data: ExpiryCompetency[]): string;
 }
 
 type RoleId = UserRole.AgencyUser | UserRole.UsersManager | UserRole.CredentialingUser;
@@ -144,19 +63,11 @@ export class CompetencyRepository implements ICompetencyRepository {
   private database: any;
 
   private readonly expiringCompetencyTables: ExpiringCompetencyTable[] = [
-    {
-      table: "junction_modules_definition_directus_users",
-      name: "modules_definition",
-      contentType: CompetencyContentType.Module,
-    },
-    { table: "junction_directus_users_exams", name: "exams", contentType: CompetencyContentType.EXAM },
-    {
-      table: "junction_sc_definitions_directus_users",
-      name: "sc_definitions",
-      contentType: CompetencyContentType.SKILL_CHECKLIST,
-    },
-    { table: "junction_directus_users_documents", name: "documents", contentType: CompetencyContentType.DOCUMENT },
-    { table: "junction_directus_users_policies", name: "policies", contentType: CompetencyContentType.POLICY },
+    { table: "junction_modules_definition_directus_users", name: "modules_definition", contentType: "Module" },
+    { table: "junction_directus_users_exams", name: "exams", contentType: "Exam" },
+    { table: "junction_sc_definitions_directus_users", name: "sc_definitions", contentType: "Skill Checklist" },
+    { table: "junction_directus_users_documents", name: "documents", contentType: "Document" },
+    { table: "junction_directus_users_policies", name: "policies", contentType: "Policy" },
   ];
 
   constructor(database: any) {
@@ -279,7 +190,7 @@ export class CompetencyRepository implements ICompetencyRepository {
     userRole: RoleId,
     userId: string,
     { page = 1, limit = 50 }: PaginationOptions = {},
-  ): Promise<CompetencyData[]> {
+  ): Promise<any[]> {
     const today = new Date();
     const twoWeeksLater = new Date(today.getTime() + 14 * 24 * 60 * 60 * 1000);
 
@@ -289,12 +200,11 @@ export class CompetencyRepository implements ICompetencyRepository {
         const baseResults: any = await this.database(table)
           .select([
             `${table}.status as competency_status`,
+            `${table}.expires_on`,
             `${table}.due_date`,
             ...(table === "junction_directus_users_exams"
               ? [`${table}.allowed_attempts`, `${table}.attempts_used`]
               : []),
-            ...(table === "junction_directus_users_policies" ? [`${table}.signed_on`] : []),
-            ...(table === "junction_directus_users_documents" ? [`${table}.read`] : []),
             table === "junction_directus_users_policies" ? `${name}.name AS title` : `${name}.title as title`,
             "directus_users.first_name",
             "directus_users.last_name",
@@ -329,7 +239,7 @@ export class CompetencyRepository implements ICompetencyRepository {
             DirectusStatus.SUSPENDED,
             DirectusStatus.INACTIVE,
           ])
-          .whereNotIn(`${table}.status`, [DirectusStatus.ARCHIVED, CompetencyState.COMPLETED, CompetencyState.FAILED])
+          .whereNotIn(`${table}.status`, [DirectusStatus.ARCHIVED])
           .whereBetween("due_date", [formatISO(today), formatISO(twoWeeksLater)])
           .modify((queryBuilder: any) => {
             if (userRole === UserRole.UsersManager) {
@@ -348,13 +258,6 @@ export class CompetencyRepository implements ICompetencyRepository {
               });
             } else {
               queryBuilder.where("junction_directus_users_agencies.agencies_id", agencyId);
-            }
-          })
-          .modify((queryBuilder: any) => {
-            if (table === "junction_directus_users_policies") {
-              queryBuilder.whereNull("signed_on");
-            } else if (table === "junction_directus_users_documents") {
-              queryBuilder.whereNull("read");
             }
           })
           .orderBy("due_date", "ASC")
@@ -399,48 +302,19 @@ export class CompetencyRepository implements ICompetencyRepository {
                 result.agency_junction_id,
               );
 
-            const baseData: BaseCompetencyData = {
-              competency_status: result.competency_status,
-              due_date: result.due_date,
-              title: result.title,
-              first_name: result.first_name,
-              last_name: result.last_name,
-              last_access: result.last_access,
-              email: result.email,
-              directus_users_status: result.directus_users_status,
-              agency_status: result.agency_status,
-              agency_junction_id: result.agency_junction_id,
-              contentType: contentType as CompetencyContentType,
+            return {
+              ...result,
+              contentType,
               departments: departments.map((d) => d.department_name),
               locations: locations.map((l) => l.location_name),
               supervisors: supervisors.map((s) => s.supervisor_name),
             };
-
-            if (contentType === CompetencyContentType.EXAM) {
-              return {
-                ...baseData,
-                allowed_attempts: result.allowed_attempts,
-                attempts_used: result.attempts_used,
-              } as ExamCompetencyData;
-            } else if (contentType === CompetencyContentType.POLICY) {
-              return {
-                ...baseData,
-                signed_on: result.signed_on,
-              } as PolicyCompetencyData;
-            } else if (contentType === CompetencyContentType.DOCUMENT) {
-              return {
-                ...baseData,
-                read: result.read,
-              } as DocumentCompetencyData;
-            }
-
-            return baseData;
           }),
         );
         return enrichedResults;
       });
       const results = await Promise.all(queries);
-      return results.flat() as CompetencyData[];
+      return results.flat();
     } catch (error) {
       console.error("An error occurred while fetching upcoming due dates: ", error);
       return [];
@@ -462,6 +336,7 @@ export class CsvService implements ICsvService {
     "Content Title",
     "Content Type",
     "Due Date",
+    "Expiry Date",
     "Allowed Attempts",
     "Number of Attempts Used",
     "Status",
@@ -480,9 +355,9 @@ export class CsvService implements ICsvService {
         title,
         contentType,
         due_date,
+        expires_on,
         allowed_attempts,
         competency_status,
-        attempts_used,
       } = item;
 
       const row = [
@@ -497,14 +372,11 @@ export class CsvService implements ICsvService {
         supervisors.join("; ") || "",
         title || "",
         contentType || "",
-        this.formatDate(due_date),
-        contentType === CompetencyContentType.EXAM || contentType === CompetencyContentType.Module
-          ? allowed_attempts ?? 0
-          : "-",
-        contentType === CompetencyContentType.EXAM || contentType === CompetencyContentType.Module
-          ? attempts_used ?? 0
-          : "-",
-        isPolicy(item) || isDocument(item) ? policiesAndDocumentsStatus(item) : competency_status,
+        due_date ? format(new Date(due_date), "dd-MM-yyyy") : "",
+        expires_on ? format(new Date(expires_on), "dd-MM-yyyy") : "",
+        allowed_attempts || 0,
+        item.attempts_used || 0,
+        competency_status,
       ];
 
       return row.map(this.formatCsvField);
@@ -522,22 +394,6 @@ export class CsvService implements ICsvService {
     }
     return stringValue;
   }
-
-  private formatDate(date: unknown): string {
-    if (!date) return "";
-
-    try {
-      const parsed =
-        typeof date === "string"
-          ? parseISO(date)
-          : date instanceof Date || typeof date === "number"
-          ? new Date(date)
-          : new Date();
-      return isValid(parsed) ? format(parsed, "dd-MM-yyyy") : "";
-    } catch {
-      return "";
-    }
-  }
 }
 
 export class ManagerDueDateReportsService {
@@ -553,7 +409,7 @@ export class ManagerDueDateReportsService {
     this.competencyRepository = competencyRepository;
   }
 
-  async getExpiryCompetencies(userId: string, agencyId: string, userRole: RoleId): Promise<CompetencyData[]> {
+  async getExpiryCompetencies(userId: string, agencyId: string, userRole: RoleId): Promise<ExpiryCompetency[]> {
     return this.competencyRepository.getAllUpcomingDueDates(agencyId, userRole, userId, 100);
   }
 
@@ -564,7 +420,7 @@ export class ManagerDueDateReportsService {
     return this.competencyRepository.getAgencyWithClinicianDueDate();
   }
 
-  transformToCSV(data: CompetencyData[]): string {
+  transformToCSV(data: ExpiryCompetency[]): string {
     return this.csvService.transformToCSV(data);
   }
 }

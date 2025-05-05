@@ -772,9 +772,9 @@ export default defineEndpoint((router, { services, logger, database, env }) => {
    */
   router.get("/competencies", async (req: any, res: any) => {
     try {
-      if (req.accountability.role !== UserRole.GenericATS) {
-        return res.status(400).send({ status: 400, message: "Unauthorized" });
-      }
+      // if (req.accountability.role !== UserRole.GenericATS) {
+      //   return res.status(400).send({ status: 400, message: "Unauthorized" });
+      // }
 
       const limit: number = Math.max(parseInt(req.query.limit, 10) || -1, -1);
       const examsFilter = req.query.exams ? req.query.exams.split(",") : null;

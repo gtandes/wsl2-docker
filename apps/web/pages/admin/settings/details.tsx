@@ -3,7 +3,7 @@ import { AdminLayout } from "../../../components/AdminLayout";
 import { Input } from "../../../components/Input";
 import { AdminSettingsLayout } from "../../../components/admin/settings/SettingsLayout";
 import { withAuth } from "../../../hooks/withAuth";
-import { AdminGroup } from "../../../types/roles";
+import { AdminGroup, UserRole } from "../../../types/roles";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faImage } from "@fortawesome/pro-solid-svg-icons";
 import Button from "../../../components/Button";
@@ -18,6 +18,8 @@ import { notify } from "../../../components/Notification";
 import { v4 as uuidv4 } from "uuid";
 import { createFile, updateFile } from "../../../utils/utils";
 import { FileItem, OneItem } from "@directus/sdk";
+import NotAuthorized from "../../not-authorized";
+import { useAuth } from "../../../hooks/useAuth";
 
 const schema = z.object({
   org_name: z.string(),
@@ -29,6 +31,7 @@ const schema = z.object({
 type FormValues = z.infer<typeof schema>;
 
 function SettingsDetails() {
+  const { currentUser } = useAuth();
   const globalAgency = useAgency();
   const [loading, setLoading] = useState<boolean>(false);
   const [loadingLogo, setLoadingLogo] = useState<boolean>(false);
@@ -157,6 +160,13 @@ function SettingsDetails() {
   useEffect(() => {
     setDisableCertificateLogo(!form.getValues("enable_certificate_logo"));
   }, [form.watch("enable_certificate_logo")]);
+
+  if (
+    currentUser?.role === UserRole.UsersManager ||
+    currentUser?.role === UserRole.CredentialingUser
+  ) {
+    return <NotAuthorized />;
+  }
 
   return (
     <AdminLayout>

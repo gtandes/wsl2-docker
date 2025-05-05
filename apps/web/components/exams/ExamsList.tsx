@@ -16,6 +16,8 @@ import { first } from "lodash";
 import { Frequency } from "../utils/Frequency";
 import { showCompetencyResultLink } from "../../utils/utils";
 import { Competencies } from "../../types/global";
+import { useAgency } from "../../hooks/useAgency";
+import { Spinner } from "../Spinner";
 
 export const getDateTimeRow = (datetime: string | Date) => {
   const { date, time } = formatDateTimeSplitted(datetime as string);
@@ -247,7 +249,12 @@ export const ExamsList: React.FC<Props> = ({
   pageCount,
   setPage,
 }: Props) => {
+  const { loaded } = useAgency();
   const [rowSelection, setRowSelection] = useState({});
+
+  if (!loaded) {
+    <Spinner />;
+  }
 
   const examsList = useAdminTable<UserExamReportsFragment>({
     columns: tableColumns,

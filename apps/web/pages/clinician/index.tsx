@@ -1,9 +1,9 @@
-import { useEffect, useMemo } from "react";
+import { useMemo } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { CompetencyCard } from "../../components/clinicians/CompetencyCard";
 import { DashboardLayout } from "../../components/clinicians/DashboardLayout";
 import { withAuth } from "../../hooks/withAuth";
-import { AllRoles, ClinicianGroup } from "../../types/roles";
+import { ClinicianGroup } from "../../types/roles";
 import {
   faChalkboardTeacher,
   faCircleQuestion,

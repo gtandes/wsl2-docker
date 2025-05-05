@@ -224,7 +224,7 @@ body {
         <span class="text-sm text-black">This is to certify that</span>
         <h2 class="text-center font-32 font-bold italic blue clinician-name"> {{ full_name }}</h2>
         <hr class="custom-hr" />
-        <p class="w-8/12 text-center">has successfully completed the online Exam:</p>
+        <p class="w-8/12 text-center">has successfully completed the online {{ type }}:</p>
         <h2 class="py-5 text-center font-32 font-bold blue font-22 test-name"> {{ title }}</h2>
         <div class="text-center">
           <h3 class="text-xl font-bold  blue percentage">Percentage {{ score }}%</h3>
@@ -241,7 +241,9 @@ body {
           </div>
           <div>
             <p>Granted on: <span class="font-bold"> {{ finished_on }}</span></p>
-            <p>Expires on: <span class="font-bold"> {{ expiration_date }} </span></p>
+            {{#expiration_date}}
+              <p>Expires on: <span class="font-bold"> {{ expiration_date }} </span></p>
+            {{/expiration_date}}
             <p>Contact Hour(s): <span class="font-bold"> {{ contact_hour }} Hour(s)</span></p>
           </div>
         </div>

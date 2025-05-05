@@ -27,6 +27,7 @@ export type ExamsReportsExport = {
   date_created: string;
   date_join: string;
   employee_number: string;
+  department: string;
 };
 export type UsersAndGroupsReportsExport = {
   name: string;

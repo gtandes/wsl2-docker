@@ -2,6 +2,36 @@ import { defineEndpoint } from "@directus/extensions-sdk";
 
 import { CompetencyState } from "types";
 import crypto from "crypto";
+import { willColumnChangeTo } from "../../common/revisions";
+
+interface VerifyHmacSignatureOptions {
+  appId: string;
+  apiKey: string;
+  method: string;
+  uri: string;
+  timestamp: string;
+  nonce: string;
+  receivedSignature: string;
+}
+
+export function verifyHmacSignature({
+  appId,
+  apiKey,
+  method,
+  uri,
+  timestamp,
+  nonce,
+  receivedSignature,
+}: VerifyHmacSignatureOptions): boolean {
+  const requestURI = encodeURIComponent(uri.toLowerCase());
+  const rawData = `${appId}${method}${requestURI}${timestamp}${nonce}`;
+  const secretKey = Buffer.from(apiKey, "base64");
+  const hmac = crypto.createHmac("sha256", secretKey);
+  hmac.update(rawData);
+  const expectedSignature = hmac.digest("base64");
+
+  return expectedSignature === receivedSignature;
+}
 
 interface ActivitySetting {
   Activity_Id: string;
@@ -35,44 +65,55 @@ interface ScoreHistoryEntry {
   score_status?: string;
 }
 
-export default defineEndpoint((router, { database, logger }) => {
+export default defineEndpoint((router, { database, logger, services, getSchema }) => {
+  const { ItemsService } = services;
+
   router.post("/callback", async (req: any, res: any) => {
     const authHeader = req.headers["authorization"] || req.headers["redirect-http-authorization"];
 
-    if (!authHeader) {
+    if (!authHeader || typeof authHeader !== "string") {
       logger.error("Authorization header missing or incorrect");
       return res.status(400).send("Authorization header missing or incorrect");
     }
 
-    const authMatch = typeof authHeader === "string" ? authHeader.match(/amx (\S+):(\S+):(\S+):(\S+)/) : null;
+    const authMatch = authHeader.match(/amx (\S+):(\S+):(\S+):(\S+)/);
+
     if (!authMatch) {
       logger.error("Invalid authorization format");
       return res.status(400).send("Invalid authorization format");
     }
 
-    const agency_id = req.query.agency;
-    const assignment_id = req.query.assignment;
+    const [, appId, receivedSignature, nonce, timestamp] = authMatch;
+
+    if (!appId || !receivedSignature || !nonce || !timestamp) {
+      logger.error("Missing one or more HMAC components");
+      return res.status(400).send("Incomplete authorization data");
+    }
+
+    const agency_id = req.query.agency_id as string | undefined;
+    const assignment_id = req.query.assignment_id as string | undefined;
 
     if (!agency_id) {
+      logger.error("Agency id missing");
       return res.status(400).send("Agency id missing");
     }
 
-    try {
-      const [_, appId, receivedSignature, nonce, timestamp] = authMatch;
-      let cleanedAgencyId = agency_id;
-      if (cleanedAgencyId.endsWith("=")) {
-        cleanedAgencyId = cleanedAgencyId.slice(0, -1);
-      }
+    if (!assignment_id) {
+      logger.error("Assignment id missing");
+      return res.status(400).send("Assignment id missing");
+    }
 
-      const agency = await database("agencies").select("ia_app_id").where("id", cleanedAgencyId).first();
+    try {
+      const cleanedAgencyId = agency_id.endsWith("=") ? agency_id.slice(0, -1) : agency_id;
+
+      const agency = await database("agencies").select("ia_app_id", "ia_api_key").where("id", cleanedAgencyId).first();
 
       if (!agency) {
         logger.error(`Agency not found: ${cleanedAgencyId}`);
         return res.status(404).send("Agency not found");
       }
-
       const assignment = await database("junction_directus_users_exams")
-        .select("status", "score_history")
+        .select("status", "score_history", "attempts_used")
         .where("id", assignment_id)
         .first();
 
@@ -81,39 +122,59 @@ export default defineEndpoint((router, { database, logger }) => {
         return res.status(404).send("Assignment not found");
       }
 
-      const APP_ID = agency.ia_app_id;
+      const method = req.method.toUpperCase();
+      const originalUrl = req.headers["x-original-url"];
+      const requestUri = (originalUrl || `${req.protocol}://${req.get("host")}${req.originalUrl}`).toLowerCase();
 
-      const method = "POST";
-      const uri = req.protocol + "://" + req.get("host") + req.originalUrl;
-
-      const signatureRawData = `${appId}${method}${uri}${timestamp}${nonce}`;
+      const isValidSignature = verifyHmacSignature({
+        appId: agency.ia_app_id,
+        apiKey: agency.ia_api_key,
+        method,
+        uri: requestUri,
+        timestamp,
+        nonce,
+        receivedSignature,
+      });
+      if (!isValidSignature) {
+        logger.error("Invalid HMAC signature");
+        return res.status(401).send("Unauthorized");
+      }
 
       const { status } = req.body;
 
       if (!status) {
+        logger.error(`Status missing for exam ${assignment_id}`);
         return res.status(400).send("Status missing");
       }
 
-      const VALID_STATUS = "Valid";
-      const INVALID_STATUS = "Invalid";
+      const normalizedStatus = status.toLowerCase().trim();
+      const VALID_STATUS = "valid";
+      const INVALID_STATUS = "invalid";
 
-      if (
-        !status.toLowerCase().includes(VALID_STATUS.toLowerCase()) &&
-        !status.toLowerCase().includes(INVALID_STATUS.toLowerCase())
-      ) {
-        logger.error(`Integrity Advocate status is not valid or invalid - ${status}`);
-        return;
+      if (!normalizedStatus.includes(VALID_STATUS) && !normalizedStatus.includes(INVALID_STATUS)) {
+        logger.error(`Unexpected IA status for exam ${assignment_id} - "${status}"`);
+        return res.status(400).send("Invalid status");
       }
-
-      const isValid =
-        status.toLowerCase().startsWith(VALID_STATUS.toLowerCase()) ||
-        status.toLowerCase().includes(` ${VALID_STATUS.toLowerCase()}`);
 
       let updatedStatus;
 
-      if (!isValid) {
+      const isExplicitlyInvalid =
+        normalizedStatus === INVALID_STATUS ||
+        normalizedStatus.includes(` ${INVALID_STATUS} `) ||
+        normalizedStatus.startsWith(`${INVALID_STATUS} `) ||
+        normalizedStatus.endsWith(` ${INVALID_STATUS}`) ||
+        normalizedStatus === INVALID_STATUS;
+
+      const isExplicitlyValid =
+        normalizedStatus === VALID_STATUS ||
+        normalizedStatus.includes(` ${VALID_STATUS} `) ||
+        normalizedStatus.startsWith(`${VALID_STATUS} `) ||
+        normalizedStatus.endsWith(` ${VALID_STATUS}`) ||
+        normalizedStatus === VALID_STATUS;
+
+      if (isExplicitlyInvalid) {
         updatedStatus = CompetencyState.INVALID;
-      } else {
+      } else if (isExplicitlyValid) {
         const scoreHistory: ScoreHistoryEntry[] = Array.isArray(assignment.score_history)
           ? assignment.score_history
           : JSON.parse(assignment.score_history || "[]");
@@ -123,14 +184,48 @@ export default defineEndpoint((router, { database, logger }) => {
           null,
         );
 
-        updatedStatus = latestAttempt?.assignment_status;
+        updatedStatus = latestAttempt?.assignment_status
+          ? latestAttempt.assignment_status
+          : assignment.attempts_used === 0
+          ? CompetencyState.IN_PROGRESS
+          : updatedStatus;
+      } else {
+        logger.error(`Unable to determine status for exam ${assignment_id} with "${status}"`);
+        return res.status(400).send("Unable to determine status");
       }
 
-      await database("junction_directus_users_exams").where("id", assignment_id).update({
-        status: updatedStatus,
+      if (!updatedStatus) {
+        logger.error(`No status update needed for exam ${assignment_id} : "${updatedStatus}"`);
+        return res.status(200).send("No status update needed");
+      }
+
+      const examService = new ItemsService("junction_directus_users_exams", {
+        database,
+        schema: await getSchema(),
+        accountability: { admin: true },
       });
 
-      logger.info(`Successfully updated assignment ${assignment_id} to status ${updatedStatus}`);
+      const revisionsService = new ItemsService("directus_revisions", {
+        database,
+        schema: await getSchema(),
+        accountability: { admin: true },
+      });
+
+      const shouldUpdate = await willColumnChangeTo(
+        revisionsService,
+        "junction_directus_users_exams",
+        assignment_id + "",
+        "status",
+        updatedStatus,
+      );
+
+      if (!shouldUpdate) {
+        logger.info(`No status change for exam ${assignment_id}. Current status: ${updatedStatus}`);
+        return res.status(200).send("No status change needed");
+      }
+
+      await examService.updateOne(assignment_id, { status: updatedStatus });
+      logger.info(`Updated exam ${assignment_id} to status ${updatedStatus}`);
       res.status(200).send("Webhook received");
     } catch (e) {
       logger.error(e);

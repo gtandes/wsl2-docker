@@ -24,27 +24,20 @@ export const SettingsTabs: Tab[] = [
       UserRole.AgencyUser,
       UserRole.HSHAdmin,
       UserRole.UsersManager,
+      UserRole.CredentialingUser,
     ],
   },
   {
     name: "Details",
     href: "/admin/settings/details",
     current: false,
-    allowed_roles: [
-      UserRole.AgencyUser,
-      UserRole.HSHAdmin,
-      UserRole.UsersManager,
-    ],
+    allowed_roles: [UserRole.AgencyUser, UserRole.HSHAdmin],
   },
   {
     name: "Notifications",
     href: "/admin/settings/notifications",
     current: false,
-    allowed_roles: [
-      UserRole.AgencyUser,
-      UserRole.HSHAdmin,
-      UserRole.UsersManager,
-    ],
+    allowed_roles: [UserRole.AgencyUser, UserRole.HSHAdmin],
   },
   {
     name: "Departments",
@@ -68,12 +61,7 @@ export const SettingsTabs: Tab[] = [
     name: "Other",
     href: "/admin/settings/other",
     current: false,
-    allowed_roles: [
-      UserRole.AgencyUser,
-      UserRole.Developer,
-      UserRole.HSHAdmin,
-      UserRole.UsersManager,
-    ],
+    allowed_roles: [UserRole.AgencyUser, UserRole.Developer, UserRole.HSHAdmin],
   },
   {
     name: "Integrations",

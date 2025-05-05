@@ -184,19 +184,17 @@ function ClinicianExams() {
           />
         );
       case CompetencyState.FAILED:
-      case CompetencyState.FAILED_TIMED_OUT:
         let { reportCallback: failedReport, disabledReport: failedDisabled } =
           getReportCallbackData(e);
 
         return (
           <Button
             variant="light-red"
-            label={e.status===CompetencyState.FAILED ? "Failed" : "Failed Timed Out"}
+            label="Failed"
             disabled={failedDisabled}
             onClick={failedReport}
           />
         );
-      
       case CompetencyState.IN_REVIEW:
         return <Button variant="light-blue" label="Proctoring Review" />;
       case CompetencyState.INVALID:

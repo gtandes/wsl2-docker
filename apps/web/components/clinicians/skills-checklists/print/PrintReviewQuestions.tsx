@@ -41,6 +41,7 @@ export const PrintReviewQuestions = () => {
                   : item.skill === 0
                   ? "N/A"
                   : item.skill}
+                {item.skill === 0 ? "N/A" : item.skill}
               </div>
               {!isEnableNewFormat && (
                 <div

@@ -60,14 +60,14 @@ export const AgencyProvider: React.FC<{
   const { flags } = useFeatureFlags();
 
   const agencyFilter = useMemo<Agencies_Filter>(() => {
-    const publishdFilter = { status: { _eq: "published" } };
-    let filter: Agencies_Filter = publishdFilter;
+    const publishedFilter = { status: { _eq: "published" } };
+    let filter: Agencies_Filter = publishedFilter;
     if (
       currentUser?.role !== UserRole.HSHAdmin &&
       currentUser?.agencies.length
     ) {
       filter = {
-        _and: [publishdFilter, { id: { _eq: currentUser.agencies[0].id } }],
+        _and: [publishedFilter, { id: { _eq: currentUser.agencies[0].id } }],
       };
     }
     return filter;

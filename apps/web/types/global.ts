@@ -57,9 +57,9 @@ export type Competencies = {
   agency: { id: string | null | undefined; name: string | null | undefined };
   expiration_type: string | null | undefined;
   score_history?:
-  | { attempt: number; score: number; score_status?: string }[]
-  | null
-  | undefined;
+    | { attempt: number; score: number; score_status?: string }[]
+    | null
+    | undefined;
   approved?: Boolean | null | undefined;
 };
 

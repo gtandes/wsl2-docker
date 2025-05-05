@@ -91,3 +91,14 @@ export async function columnChanged(
 
   return hasChanged;
 }
+
+export async function willColumnChangeTo(
+  revisionsService: any,
+  collectionName: string,
+  itemId: string,
+  column: string,
+  newValue: any,
+): Promise<boolean> {
+  const { currentRevision } = await getLastRevisions(revisionsService, collectionName, itemId);
+  return currentRevision[column] !== newValue;
+}

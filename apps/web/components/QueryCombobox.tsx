@@ -78,7 +78,7 @@ export default function QueryCombobox<T extends Object>({
     if (refetchQuery) {
       refetch();
     }
-  }, [refetch, refetchQuery]);
+  }, [refetchQuery]);
 
   return (
     <Combobox<T>

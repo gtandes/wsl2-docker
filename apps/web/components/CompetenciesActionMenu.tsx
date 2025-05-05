@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { PopOver, PopOverItem } from "./PopOver";
 
 interface Props {
-  onDelete: () => void;
+  onDelete?: () => void;
   onEdit?: () => void;
   onReassign?: () => void;
   markCompetencyAsCompleted?: () => void;
@@ -37,7 +37,7 @@ export const CompetenciesActionMenu: React.FC<Props> = ({
           Mark as completed
         </PopOverItem>
       )}
-      <PopOverItem onClick={() => onDelete()}>Remove</PopOverItem>
+      {onDelete && <PopOverItem onClick={() => onDelete()}>Remove</PopOverItem>}
     </PopOver>
   );
 };

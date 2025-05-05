@@ -61,7 +61,7 @@ export abstract class ExamsEmails {
    * @param hookContext
    * @returns clinician e-mail data format to be send
    */
-  private static async clinicianExamFailed(currentAssignment: any, hookContext: HookExtensionContext,isFailedTimedOut?: boolean) {
+  private static async clinicianExamFailed(currentAssignment: any, hookContext: HookExtensionContext) {
     return generateEmailPayload(
       "clinician-exam-failed",
       currentAssignment.directus_users_id.email,
@@ -78,7 +78,7 @@ export abstract class ExamsEmails {
             title: currentAssignment.exams_id.title,
             attempts_used: currentAssignment.attempts_used,
             allowed_attempts: currentAssignment.allowed_attempts,
-            score: isFailedTimedOut ? "-" : currentAssignment.score,
+            score: currentAssignment.score,
             failed_date: format(new Date(), "PPpp"),
             outlineName: currentAssignment.exam_versions_id?.outline?.title || "",
             outlineUrl: currentAssignment.exam_versions_id?.outline
@@ -336,7 +336,6 @@ export abstract class ExamsEmails {
     currentAssignment: any,
     services: DirectusServices,
     hookContext: HookExtensionContext,
-    isFailedTimedOut?: boolean
   ) {
     const recipients = await getAgencyRecipients({
       usersService: services.usersService,
@@ -345,7 +344,7 @@ export abstract class ExamsEmails {
     });
 
     if (currentAssignment.agency?.notifications_settings?.clinician.success_failure) {
-      const emailClinicianData = await this.clinicianExamFailed(currentAssignment, hookContext,isFailedTimedOut);
+      const emailClinicianData = await this.clinicianExamFailed(currentAssignment, hookContext);
       await services.mailService.send(emailClinicianData);
     }
 
@@ -517,11 +516,11 @@ export abstract class ExamsEmails {
       }
 
       const FAILED = await entityChangedWithPattern(services.revisionsService, this.collection, assignmentId, {
-        status: (v) => v === CompetencyState.FAILED || v === CompetencyState.FAILED_TIMED_OUT,
+        status: (v) => v === CompetencyState.FAILED,
       });
 
       if (FAILED) {
-        this.examFailed(currentAssignment, services, hookContext, currentAssignment.status=== CompetencyState.FAILED_TIMED_OUT);
+        this.examFailed(currentAssignment, services, hookContext);
         return;
       }
 

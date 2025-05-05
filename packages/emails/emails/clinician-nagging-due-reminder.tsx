@@ -46,7 +46,6 @@ export const ClinicianDueDateReminderEmail = ({ props = defaultEmailProps }) => 
         Your invaluable role within the community is acknowledged, and we trust in your ability to succeed. Kindly
         ensure compliance by promptly completing the necessary competencies today.
       </Text>
-      <PortalLink />
       <Text className="text-gray-600">
         Warm regards,
         <br /> Healthcare Staffing Hire

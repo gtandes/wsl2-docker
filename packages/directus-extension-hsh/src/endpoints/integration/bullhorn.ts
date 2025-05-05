@@ -463,7 +463,7 @@ export default defineEndpoint((router, endpointContext) => {
     }
   });
 
-  //Syncing Profiles from BH to V2 via Settings
+  //Sync Profile From BH to HSH
   router.get("/candidates", async (req: any, res: any) => {
     try {
       if (req.accountability.role !== UserRole.HSHAdmin) {
@@ -473,7 +473,9 @@ export default defineEndpoint((router, endpointContext) => {
 
       logger.info("Received request to fetch candidates");
 
-      const { agency_id } = req.query;
+      const { agency_id, dry_run } = req.query;
+      const isDryRun = dry_run === "true";
+
       if (!agency_id) {
         return res.status(400).json({ error: "Missing agency_id parameter" });
       }
@@ -485,9 +487,12 @@ export default defineEndpoint((router, endpointContext) => {
       const { config, authData } = await getBullhornConfig(db, agency_id);
       const candidates = await fetchAllCandidates(config.rest_url, authData.BhRestToken);
 
+      const normalizeEmail = (email: string) => email?.trim().toLowerCase();
+      const normalizeName = (name: string) => name?.trim().toLowerCase();
+
       const uniqueCandidates = candidates.reduce((acc: any[], candidate) => {
-        const email = candidate.email?.trim().toLowerCase();
-        if (email && !acc.some((c) => c.email === email)) {
+        const email = normalizeEmail(candidate.email);
+        if (email && !acc.some((c) => normalizeEmail(c.email) === email)) {
           acc.push({ ...candidate, email });
         }
         return acc;
@@ -498,83 +503,95 @@ export default defineEndpoint((router, endpointContext) => {
         fields: ["email", "id", "first_name", "last_name"],
       });
 
-      const existingEmails = new Set(existing.map((u: { email: string }) => u.email));
-      const newCandidates = uniqueCandidates.filter((c) => !existingEmails.has(c.email));
+      const existingEmails = new Set(existing.map((u: { email: string }) => normalizeEmail(u.email)));
+      const newCandidates = uniqueCandidates.filter((c) => !existingEmails.has(normalizeEmail(c.email)));
 
       let createdCount = 0;
       let failedCount = 0;
+      let updatedCount = 0;
       const syncLogs: any[] = [];
 
-      for (const candidate of newCandidates) {
-        const { firstName, lastName, email, id } = candidate;
+      //Check for required fields before proceeding with creation
+      const isValidCandidate = (candidate: any) =>
+        candidate.email && candidate.firstName && candidate.lastName && candidate.id;
 
-        try {
-          const createResponse = await usersDB.createOne({
-            first_name: firstName,
-            last_name: lastName,
-            email,
-            role: UserRole.Clinician,
-            agencies: [
-              {
-                agencies_id: { id: agency_id },
-                bullhorn_id: id,
-              },
-            ],
-          });
+      // Batch create new users
+      await Promise.allSettled(
+        newCandidates.map(async (candidate) => {
+          if (!isValidCandidate(candidate)) {
+            failedCount++;
+            syncLogs.push({
+              email: candidate.email,
+              first_name: candidate.firstName,
+              last_name: candidate.lastName,
+              status: "error",
+              reason: "Invalid candidate data",
+            });
+            logger.warn(`Invalid candidate data: ${candidate.email}`);
+            return;
+          }
 
-          if (createResponse) {
-            createdCount++;
+          const { firstName, lastName, email, id } = candidate;
+          try {
+            if (!isDryRun) {
+              const createdUser = await usersDB.createOne({
+                first_name: firstName,
+                last_name: lastName,
+                email,
+                role: UserRole.Clinician,
+                agencies: [
+                  {
+                    agencies_id: { id: agency_id },
+                    bullhorn_id: id,
+                  },
+                ],
+              });
+
+              if (createdUser) createdCount++;
+            }
+
             syncLogs.push({
               email,
               first_name: firstName,
               last_name: lastName,
               status: "success",
-              reason: "",
+              reason: "User created",
             });
             logger.info(`User created: ${email}`);
-          } else {
+          } catch (error: any) {
             failedCount++;
             syncLogs.push({
               email,
               first_name: firstName,
               last_name: lastName,
-              status: "failed",
-              reason: "Failed to create user",
+              status: "error",
+              reason: error.message,
             });
-            logger.warn(`Failed to create user: ${email}`);
+            logger.error(`Error creating user: ${email}`, { error });
           }
-        } catch (error: any) {
-          failedCount++;
-          syncLogs.push({
-            email,
-            first_name: firstName,
-            last_name: lastName,
-            status: "error",
-            reason: error.message,
-          });
-          logger.error(`Error creating user: ${email}`, { error });
-        }
-      }
+        }),
+      );
 
-      let updatedCount = 0;
-
+      // Update names and agency associations for existing users
       for (const candidate of uniqueCandidates) {
-        if (!existingEmails.has(candidate.email)) continue;
+        const email = normalizeEmail(candidate.email);
+        if (!existingEmails.has(email)) continue;
 
-        const existingUser = existing.find((u: { email: any }) => u.email === candidate.email);
+        const existingUser = existing.find((u: any) => normalizeEmail(u.email) === email);
         if (!existingUser) continue;
 
         const { id: existingUserId, first_name: existingFirstName, last_name: existingLastName } = existingUser;
-
-        if (existingFirstName === candidate.firstName && existingLastName === candidate.lastName) continue;
+        const nameNeedsUpdate =
+          normalizeName(existingFirstName) !== normalizeName(candidate.firstName) ||
+          normalizeName(existingLastName) !== normalizeName(candidate.lastName);
 
         try {
-          const updateData: any = {
-            first_name: candidate.firstName,
-            last_name: candidate.lastName,
-          };
-
-          await usersDB.updateOne(existingUserId, updateData);
+          if (nameNeedsUpdate && !isDryRun) {
+            await usersDB.updateOne(existingUserId, {
+              first_name: candidate.firstName,
+              last_name: candidate.lastName,
+            });
+          }
 
           const existingAssociation = await agencyUsersDb.readByQuery({
             filter: {
@@ -583,63 +600,49 @@ export default defineEndpoint((router, endpointContext) => {
             },
           });
 
-          if (existingAssociation && existingAssociation.length > 0) continue;
-
-          const createResponse = await agencyUsersDb.createOne({
-            agencies_id: { id: agency_id },
-            directus_users_id: existingUserId,
-            bullhorn_id: candidate.id,
-          });
-
-          if (createResponse) {
-            updatedCount++;
-            syncLogs.push({
-              email: candidate.email,
-              first_name: candidate.firstName,
-              last_name: candidate.lastName,
-              status: "success",
-              reason: "",
+          if (!existingAssociation?.length && !isDryRun) {
+            const createResponse = await agencyUsersDb.createOne({
+              agencies_id: { id: agency_id },
+              directus_users_id: existingUserId,
+              bullhorn_id: candidate.id,
             });
-            logger.info(`User ${candidate.email} updated and associated with agency ${agency_id}`);
-          } else {
-            syncLogs.push({
-              email: candidate.email,
-              first_name: candidate.firstName,
-              last_name: candidate.lastName,
-              status: "failed",
-              reason: "Failed to associate user with agency",
-            });
-            logger.warn(`Failed to associate user ${candidate.email} with agency ${agency_id}`);
+
+            if (createResponse) updatedCount++;
           }
-        } catch (error: any) {
+
           syncLogs.push({
-            email: candidate.email,
+            email,
             first_name: candidate.firstName,
             last_name: candidate.lastName,
-            status: "failed",
+            status: "success",
+            reason: nameNeedsUpdate ? "Name updated or agency associated" : "Agency associated",
+          });
+
+          logger.info(`User ${email} processed (update/association) for agency ${agency_id}`);
+        } catch (error: any) {
+          syncLogs.push({
+            email,
+            first_name: candidate.firstName,
+            last_name: candidate.lastName,
+            status: "error",
             reason: error.message,
           });
-          logger.error(`Error updating user ${candidate.email} and associating with agency ${agency_id}`, {
-            error,
-          });
+          logger.error(`Error updating/associating user ${email}`, { error });
         }
       }
 
-      const message = `Sync completed: ${createdCount} new profiles created, ${failedCount} failed, ${updatedCount} users updated with new agency.`;
-
-      const syncResults = syncLogs.map((result: any) => ({
-        email: result.email,
-        first_name: result.first_name,
-        last_name: result.last_name,
-        status: result.status,
-        reason: result.reason || "",
-      }));
+      const message = `Sync completed: ${createdCount} new profiles created, ${failedCount} failed, ${updatedCount} updated with new agency.`;
 
       return res.status(200).json({
         message,
-        candidates: newCandidates,
-        updatedCandidates: updatedCount,
-        logs: syncResults,
+        stats: {
+          createdCount,
+          failedCount,
+          updatedCount,
+          totalProcessed: uniqueCandidates.length,
+        },
+        newCandidates,
+        logs: syncLogs,
       });
     } catch (err: any) {
       logger.error("Error in /candidates route", { err });
@@ -655,10 +658,11 @@ export default defineEndpoint((router, endpointContext) => {
         return res.status(403).json({ error: "Forbidden: Only HSH Admin can access." });
       }
 
-      logger.info("Received request to sync candidates");
-
       const { agency_id, start = 0, count = 1000 } = req.query;
-      if (!agency_id) return res.status(400).json({ error: "Missing agency_id parameter" });
+
+      if (!agency_id) {
+        return res.status(400).json({ error: "Missing agency_id parameter" });
+      }
 
       const db = new DBService(ItemsService, req.schema, { admin: true });
       const usersDB = db.get("directus_users");
@@ -674,53 +678,65 @@ export default defineEndpoint((router, endpointContext) => {
           })
         )?.map((entry: { directus_users_id: any }) => entry.directus_users_id) || [];
 
-      if (userIds.length === 0) return res.status(200).json({ message: "No users found for this agency" });
+      if (userIds.length === 0) {
+        return res.status(200).json({ message: "No users found for this agency" });
+      }
 
       const clinicians = await usersDB.readByQuery({
         filter: { id: { _in: userIds }, role: { _eq: UserRole.Clinician } },
         fields: ["id", "email", "first_name", "last_name"],
       });
 
-      if (clinicians.length === 0) return res.status(200).json({ message: "No clinicians found for this agency" });
+      if (clinicians.length === 0) {
+        return res.status(200).json({ message: "No clinicians found for this agency" });
+      }
+
+      const validClinicians = clinicians.filter((c: any) => c.email && c.first_name && c.last_name);
 
       const { config, authData } = await getBullhornConfig(db, agency_id);
 
-      let existingCandidates = [];
+      if (!config?.rest_url || !authData?.BhRestToken) {
+        return res.status(500).json({ error: "Invalid Bullhorn configuration" });
+      }
+
+      // Fetch all existing candidates from Bullhorn
+      const existingCandidates: any[] = [];
+      const searchQuery = encodeURIComponent("isDeleted:0 AND NOT status:Archive");
       let currentPage = 1;
 
       while (true) {
-        const response = await fetchWithRetry(
-          `${config.rest_url}/search/Candidate?query=isDeleted:0 AND NOT status:Archive&fields=id,email&count=500&page=${currentPage}`,
-          { method: "GET", headers: { BhRestToken: config.bh_session_key } },
-        );
+        const url = `${config.rest_url}/search/Candidate?query=${searchQuery}&fields=id,email&count=500&page=${currentPage}`;
+        const response = await fetchWithRetry(url, {
+          method: "GET",
+          headers: { BhRestToken: config.bh_session_key },
+        });
 
         if (!response.ok) {
-          logger.error(`Failed to fetch candidates (status: ${response.status})`);
+          logger.error("Failed to fetch candidates", { status: response.status });
           return res.status(response.status).json({ error: "Failed to fetch existing candidates" });
         }
 
         const data = await response.json();
-
-        if (!data || !data.data) {
-          logger.error("Invalid response data format from Bullhorn API");
+        if (!data?.data) {
+          logger.error("Invalid response format from Bullhorn API");
           return res.status(500).json({ error: "Invalid response format from Bullhorn API" });
         }
 
-        existingCandidates.push(...(data.data || []));
-
+        existingCandidates.push(...data.data);
         if (data.data.length < 500) break;
-
         currentPage++;
-        await new Promise((resolve) => setTimeout(resolve, 1000));
+        await new Promise((r) => setTimeout(r, 1000));
       }
 
-      const existingEmails = new Set(existingCandidates.map((c) => c.email?.toLowerCase()));
-      const newCandidates = clinicians.filter(
-        (user: { email: string }) => !existingEmails.has(user.email.toLowerCase()),
-      );
+      const existingEmails = new Set(existingCandidates.map((c) => c.email?.toLowerCase().trim()).filter(Boolean));
+      const newCandidates = validClinicians.filter((user: { email: string }) => {
+        const normalizedEmail = user.email?.toLowerCase().trim();
+        return normalizedEmail && !existingEmails.has(normalizedEmail);
+      });
 
-      if (newCandidates.length === 0)
+      if (newCandidates.length === 0) {
         return res.status(200).json({ message: "All clinicians are already in Bullhorn" });
+      }
 
       const syncLogs: string[] = [];
       let successCount = 0;
@@ -735,7 +751,6 @@ export default defineEndpoint((router, endpointContext) => {
           email: candidate.email,
           status: "Active",
         };
-
         if (!candidate.first_name || !candidate.last_name || !candidate.email) {
           const reason = "Missing required fields";
           syncLogs.push(`${label} — failed Reason: ${reason}`);
@@ -753,42 +768,45 @@ export default defineEndpoint((router, endpointContext) => {
           });
 
           if (!response.ok) {
-            const responseBody = await response.text();
-            syncLogs.push(`${label} — failed. Reason: ${responseBody}`);
-            return { ...candidate, status: "failed", reason: responseBody };
+            const body = await response.text();
+            syncLogs.push(`${label} — failed. Reason: ${body}`);
+            return { ...candidate, status: "failed", reason: body };
           }
 
           const result = await response.json();
-          syncLogs.push(`${label} — done`);
           successCount++;
+          syncLogs.push(`${label} — done`);
+
+          await junctionDB
+            .knex("junction_directus_users_agencies")
+            .where({ directus_users_id: candidate.id })
+            .update({ bullhorn_id: result.changedEntityId.toString() });
+
           return { ...candidate, status: "success", bullhornId: result.changedEntityId };
-        } catch (error: any) {
-          syncLogs.push(`${label} — error. Reason: ${error.message}`);
-          return { ...candidate, status: "failed", reason: error.message };
+        } catch (err: any) {
+          syncLogs.push(`${label} — error. Reason: ${err.message}`);
+          return { ...candidate, status: "failed", reason: err.message };
         }
       };
 
-      const results = await Promise.all(
-        newCandidates.map((candidate: any, index: number) => limit(() => syncCandidate(candidate, index))),
-      );
-
-      const syncResults = results.map((result: any) => ({
-        email: result.email,
-        first_name: result.first_name,
-        last_name: result.last_name,
-        status: result.status,
-        reason: result.reason || "",
-      }));
-
-      logger.info(`Successfully synced ${successCount} candidates to Bullhorn`);
-
+      const results = await Promise.all(newCandidates.map((c: any, i: any) => limit(() => syncCandidate(c, i))));
       return res.status(200).json({
         synced: successCount,
         total: newCandidates.length,
-        logs: syncResults,
+        next_start: Number(start) + Number(count),
+        logs: results.map((r) => ({
+          email: r.email,
+          first_name: r.first_name,
+          last_name: r.last_name,
+          status: r.status,
+          reason: r.reason || "",
+        })),
       });
-    } catch (error) {
-      logger.error("Unexpected error during candidate sync", { error });
+    } catch (error: any) {
+      logger.error("Unexpected error during candidate sync", {
+        error: error.message,
+        stack: error.stack,
+      });
       return res.status(500).json({ error: "Internal Server Error" });
     }
   });

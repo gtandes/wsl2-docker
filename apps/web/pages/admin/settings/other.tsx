@@ -22,6 +22,7 @@ import { useAgency } from "../../../hooks/useAgency";
 import { Input } from "../../../components/Input";
 import { Spinner } from "../../../components/Spinner";
 import { ExpirationType } from "types";
+import NotAuthorized from "../../not-authorized";
 
 const validationSchema = z.object({
   cat_exams_enabled: z.boolean(),
@@ -146,6 +147,13 @@ function OtherSettings() {
       );
     }
   }, [catModuleEnabled, form, globalAgency.currentAgency]);
+
+  if (
+    auth.currentUser?.role === UserRole.UsersManager ||
+    auth.currentUser?.role === UserRole.CredentialingUser
+  ) {
+    return <NotAuthorized />;
+  }
 
   return (
     <AdminLayout>

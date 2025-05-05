@@ -28,19 +28,40 @@ export async function getSkillsChecklistReport(
 }
 
 async function handleSpecificReport(services: DirectusServices, agency: string, ids: string[]) {
-  const headers = [
-    "SC TITLE",
-    "SC ID",
-    "SPECIALTY",
-    "DEPARTMENT",
-    "LOCATION",
-    "EMAIL",
-    "TENANT",
-    "SECTION",
-    "ITEM",
-    "SKILL RESPONSE",
-    "FREQUENCY RESPONSE",
-  ];
+  const featureFlags = await services.featureFlagsService.readByQuery({
+    filter: { flag_key: { _eq: "is_skill_checklist_new_format_enabled" } },
+    fields: ["id", "enabled"],
+  });
+
+  const isNewFormatEnabled = featureFlags?.[0]?.enabled;
+  const headers = isNewFormatEnabled
+    ? [
+        "SC TITLE",
+        "SC ID",
+        "SPECIALTY",
+        "DEPARTMENT",
+        "LOCATION",
+        "EMAIL",
+        "TENANT",
+        "SECTION",
+        "ITEM",
+        "SKILL RESPONSE",
+        "FREQUENCY RESPONSE",
+        "PROFICIENCY RESPONSE",
+      ]
+    : [
+        "SC TITLE",
+        "SC ID",
+        "SPECIALTY",
+        "DEPARTMENT",
+        "LOCATION",
+        "EMAIL",
+        "TENANT",
+        "SECTION",
+        "ITEM",
+        "SKILL RESPONSE",
+        "FREQUENCY RESPONSE",
+      ];
 
   const body: string[][] = [];
 
@@ -88,19 +109,36 @@ async function handleSpecificReport(services: DirectusServices, agency: string, 
     sc.questions.forEach((q: any) => {
       q.sections.forEach((s: any) => {
         s.items.forEach((i: any) => {
-          body.push([
-            sc.sc_definitions_id?.title,
-            sc.sc_definitions_id?.id,
-            specialties.join(", "),
-            departments.join(", "),
-            locations.join(", "),
-            sc.directus_users_id?.email,
-            sc.agency?.name,
-            s?.title,
-            i?.title,
-            i?.skill,
-            i?.frequency,
-          ]);
+          if (isNewFormatEnabled) {
+            body.push([
+              sc.sc_definitions_id?.title,
+              sc.sc_definitions_id?.id,
+              specialties.join(", "),
+              departments.join(", "),
+              locations.join(", "),
+              sc.directus_users_id?.email,
+              sc.agency?.name,
+              s?.title,
+              i?.title,
+              i?.skill,
+              i?.frequency,
+              i?.proficiency,
+            ]);
+          } else {
+            body.push([
+              sc.sc_definitions_id?.title,
+              sc.sc_definitions_id?.id,
+              specialties.join(", "),
+              departments.join(", "),
+              locations.join(", "),
+              sc.directus_users_id?.email,
+              sc.agency?.name,
+              s?.title,
+              i?.title,
+              i?.skill,
+              i?.frequency,
+            ]);
+          }
         });
       });
     });

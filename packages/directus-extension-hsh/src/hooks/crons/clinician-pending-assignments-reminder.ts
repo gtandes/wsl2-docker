@@ -1,3 +1,4 @@
+/* eslint-disable turbo/no-undeclared-env-vars */
 import { defineHook } from "@directus/extensions-sdk";
 import { DirectusServices } from "../../common/directus-services";
 import { generateEmailPayload } from "emails";
@@ -6,7 +7,11 @@ import { CompetencyState, DirectusStatus, UserRole } from "types";
 import { isUserActive } from "../../common/utils";
 
 export default defineHook(({ schedule }, ctx) => {
-  schedule("0 10 * * 1", async () => {
+  const currentEnvironment = process.env.ENV_NAME || "";
+  const cronSchedule = ["stg"].includes(currentEnvironment) ? "*/30 * * * *" : "0 10 * * 1";
+
+  schedule(cronSchedule, async () => {
+    ctx.logger.info("Running clinician pending assignments reminder");
     const services = await DirectusServices.fromSchedule(ctx);
 
     const skillChecklistFields = [
@@ -137,120 +142,184 @@ export default defineHook(({ schedule }, ctx) => {
       ],
     });
 
-    const emails = usersWithPendingAssignments
+    const reminderEmails = usersWithPendingAssignments
       .map((user: any) => {
         const recipient = user.email;
 
-        const assignments: any[] = [];
+        const userAssignmentsGroupedByAgency: Record<string, Record<string, { agency: any; assignments: any[] }>> = {};
+
+        userAssignmentsGroupedByAgency[recipient] = {};
 
         if (user.sc_definitions) {
-          user.sc_definitions.forEach((sc: any) => {
-            if (
-              sc.agency.notifications_settings?.clinician.pending_assignment_reminder &&
-              isUserActive(sc.agency.id, user)
-            ) {
-              if (sc.status === CompetencyState.PENDING) {
-                assignments.push({
-                  name: sc.sc_definitions_id.title,
-                  due_date: format(new Date(sc.due_date), "MM/dd/yyyy"),
-                  status: sc.status,
-                });
-              }
+          for (const sc of user.sc_definitions) {
+            const agencyId = sc.agency.id;
+            const shouldNotify = sc.agency.notifications_settings?.clinician.pending_assignment_reminder;
+            const isActive = isUserActive(agencyId, user);
+
+            if (sc.status !== CompetencyState.PENDING || !shouldNotify || !isActive) {
+              continue;
             }
-          });
+
+            if (!userAssignmentsGroupedByAgency[recipient]) {
+              userAssignmentsGroupedByAgency[recipient] = {};
+            }
+
+            if (!userAssignmentsGroupedByAgency[recipient][agencyId]) {
+              userAssignmentsGroupedByAgency[recipient][agencyId] = {
+                agency: sc.agency,
+                assignments: [],
+              };
+            }
+
+            userAssignmentsGroupedByAgency[recipient][agencyId].assignments.push({
+              name: sc.sc_definitions_id.title,
+              due_date: format(new Date(sc.due_date), "MM/dd/yyyy"),
+              status: sc.status,
+            });
+          }
         }
 
         if (user.exams) {
-          user.exams.forEach((e: any) => {
-            if ([CompetencyState.NOT_STARTED, CompetencyState.IN_PROGRESS].includes(e.status)) {
-              if (
-                e.agency.notifications_settings?.clinician.pending_assignment_reminder &&
-                isUserActive(e.agency.id, user)
-              ) {
-                assignments.push({
-                  name: e.exams_id.title,
-                  due_date: format(new Date(e.due_date), "MM/dd/yyyy"),
-                  status: e.status,
-                });
-              }
+          for (const exam of user.exams) {
+            const agencyId = exam.agency.id;
+            const shouldNotify = exam.agency.notifications_settings?.clinician.pending_assignment_reminder;
+            const isActive = isUserActive(agencyId, user);
+
+            if (
+              ![CompetencyState.NOT_STARTED, CompetencyState.IN_PROGRESS].includes(exam.status) ||
+              !shouldNotify ||
+              !isActive
+            ) {
+              continue;
             }
-          });
+
+            if (!userAssignmentsGroupedByAgency[recipient][agencyId]) {
+              userAssignmentsGroupedByAgency[recipient][agencyId] = {
+                agency: exam.agency,
+                assignments: [],
+              };
+            }
+
+            userAssignmentsGroupedByAgency[recipient][agencyId].assignments.push({
+              name: exam.exams_id.title,
+              due_date: format(new Date(exam.due_date), "MM/dd/yyyy"),
+              status: exam.status,
+            });
+          }
         }
 
         if (user.modules) {
-          user.modules.forEach((m: any) => {
-            if ([CompetencyState.STARTED, CompetencyState.PENDING].includes(m.status)) {
-              if (
-                m.agency.notifications_settings?.clinician.pending_assignment_reminder &&
-                isUserActive(m.agency.id, user)
-              ) {
-                assignments.push({
-                  name: m.modules_definition_id.title,
-                  due_date: format(new Date(m.due_date), "MM/dd/yyyy"),
-                  status: m.status,
-                });
-              }
+          for (const competencyModule of user.modules) {
+            const agencyId = competencyModule.agency.id;
+            const shouldNotify = competencyModule.agency.notifications_settings?.clinician.pending_assignment_reminder;
+            const isActive = isUserActive(agencyId, user);
+            if (
+              ![CompetencyState.STARTED, CompetencyState.PENDING].includes(competencyModule.status) ||
+              !shouldNotify ||
+              !isActive
+            ) {
+              continue;
             }
-          });
+
+            if (!userAssignmentsGroupedByAgency[recipient][agencyId]) {
+              userAssignmentsGroupedByAgency[recipient][agencyId] = {
+                agency: competencyModule.agency,
+                assignments: [],
+              };
+            }
+
+            userAssignmentsGroupedByAgency[recipient][agencyId].assignments.push({
+              name: competencyModule.modules_definition_id.title,
+              due_date: format(new Date(competencyModule.due_date), "MM/dd/yyyy"),
+              status: competencyModule.status,
+            });
+          }
         }
 
         if (user.documents) {
-          user.documents.forEach((d: any) => {
-            if (!d.read) {
-              if (
-                d.agency.notifications_settings?.clinician.pending_assignment_reminder &&
-                isUserActive(d.agency.id, user)
-              ) {
-                assignments.push({
-                  name: d.documents_id.title,
-                  due_date: format(new Date(d.due_date), "MM/dd/yyyy"),
-                  status: "UNREAD",
-                });
-              }
+          for (const doc of user.documents) {
+            const agencyId = doc.agency.id;
+            const shouldNotify = doc.agency.notifications_settings?.clinician.pending_assignment_reminder;
+            const isActive = isUserActive(agencyId, user);
+            if (doc.read || !shouldNotify || !isActive) {
+              continue;
             }
-          });
+
+            if (!userAssignmentsGroupedByAgency[recipient][agencyId]) {
+              userAssignmentsGroupedByAgency[recipient][agencyId] = {
+                agency: doc.agency,
+                assignments: [],
+              };
+            }
+
+            userAssignmentsGroupedByAgency[recipient][agencyId].assignments.push({
+              name: doc.documents_id.title,
+              due_date: format(new Date(doc.due_date), "MM/dd/yyyy"),
+              status: "UNREAD",
+            });
+          }
         }
 
         if (user.policies) {
-          user.policies.forEach((p: any) => {
-            if (!p.signed_on) {
-              if (
-                p.agency.notifications_settings?.clinician.pending_assignment_reminder &&
-                isUserActive(p.agency.id, user)
-              ) {
-                assignments.push({
-                  name: p.policies_id.name,
-                  due_date: format(new Date(p.due_date), "MM/dd/yyyy"),
-                  status: "UNSIGNED",
-                });
-              }
+          for (const policy of user.policies) {
+            const agencyId = policy.agency.id;
+            const shouldNotify = policy.agency.notifications_settings?.clinician.pending_assignment_reminder;
+            const isActive = isUserActive(agencyId, user);
+            if (policy.signed_on || !shouldNotify || !isActive) {
+              continue;
             }
+
+            if (!userAssignmentsGroupedByAgency[recipient][agencyId]) {
+              userAssignmentsGroupedByAgency[recipient][agencyId] = {
+                agency: policy.agency,
+                assignments: [],
+              };
+            }
+
+            userAssignmentsGroupedByAgency[recipient][agencyId].assignments.push({
+              name: policy.policies_id.name,
+              due_date: format(new Date(policy.due_date), "MM/dd/yyyy"),
+              status: "UNSIGNED",
+            });
+          }
+        }
+
+        const allAssignments = Object.values(userAssignmentsGroupedByAgency[recipient]).flatMap(
+          (group) => group.assignments,
+        );
+
+        if (allAssignments.length === 0) return null;
+
+        const emails: any[] = [];
+
+        if (Object.keys(userAssignmentsGroupedByAgency[recipient]).length !== 0) {
+          Object.values(userAssignmentsGroupedByAgency[recipient]).forEach((agencyData: any) => {
+            const agencyAssignments = agencyData.assignments;
+
+            const sortedAssignments = [...agencyAssignments].sort((a, b) => {
+              return new Date(a.due_date).getTime() - new Date(b.due_date).getTime();
+            });
+
+            emails.push(
+              generateEmailPayload("clinician-pending-assignment", recipient, `Friendly Reminder: Pending Assignment`, {
+                props: {
+                  previewText: "Friendly Reminder: Pending Assignment",
+                  user,
+                  agency: agencyData.agency,
+                  assignments: sortedAssignments,
+                },
+              }),
+            );
           });
         }
 
-        if (assignments.length === 0) {
-          return;
-        }
-
-        return generateEmailPayload(
-          "clinician-pending-assignment",
-          recipient,
-          "Friendly Reminder: Pending Assignment",
-          {
-            props: {
-              previewText: "Friendly Reminder: Pending Assignment",
-              user,
-              assignments: assignments.sort((a, b) => {
-                return new Date(a.due_date).getTime() - new Date(b.due_date).getTime();
-              }),
-            },
-          },
-        );
+        return emails;
       })
-      .filter(Boolean);
+      .filter((entry: any) => entry !== null)
+      .flat();
 
-    await Promise.allSettled(emails.map((e: any) => services.mailService.send(e)));
+    await Promise.allSettled(reminderEmails.map((e: any) => services.mailService.send(e)));
 
-    ctx.logger.info(`Sent ${emails.length} pending assignments reminder emails`);
+    ctx.logger.info(`Sent ${reminderEmails.length} pending assignments reminder emails`);
   });
 });

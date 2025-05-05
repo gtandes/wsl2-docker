@@ -129,6 +129,7 @@ class S3Service {
       result.logoPath = result.file_id ? `${process.env.PUBLIC_URL}/assets/${result.file_id}` : "";
 
       result.contact_hour = result.contact_hour || 0;
+      result.type = competencyType.charAt(0).toUpperCase() + competencyType.slice(1);
 
       this.formatCertificateDates(result);
 

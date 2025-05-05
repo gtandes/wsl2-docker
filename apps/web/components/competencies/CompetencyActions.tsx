@@ -128,7 +128,6 @@ export const CompetencyActions = ({ competency, refetch }: Props) => {
     (competency.status === CompetencyState.FAILED ||
       competency.status === CompetencyState.COMPLETED ||
       competency.status === CompetencyState.EXPIRED ||
-      competency.status === CompetencyState.FAILED_TIMED_OUT ||
       competency.status === CompetencyState.DUE_DATE_EXPIRED);
   const moduleReassignCondition =
     competency.type === CompetencyType.MODULE &&
@@ -227,7 +226,11 @@ export const CompetencyActions = ({ competency, refetch }: Props) => {
           : undefined
       }
       onViewLogs={() => showCompetencyLogs(competency.id)}
-      onDelete={() => onRemoveCompetency(competency.id, competency.type)}
+      onDelete={
+        competency.status !== DirectusStatus.ARCHIVED
+          ? () => onRemoveCompetency(competency.id, competency.type)
+          : undefined
+      }
       onReassign={showEditAndReassignButtons ? reassignCompetency : undefined}
       onEdit={showEditAndReassignButtons ? editCompetency : undefined}
       markCompetencyAsCompleted={

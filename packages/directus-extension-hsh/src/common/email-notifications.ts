@@ -1101,7 +1101,7 @@ export class EmailNotifications {
             previewText: "Weekly Reminder: Clinicians Nearing Competencies Due Date!",
             agency: {
               name: agency.name,
-              logo: agency.logo?.id || "",
+              logo: agency.logo.id ?? "",
             },
             user: {
               first_name: user.first_name,

@@ -189,7 +189,7 @@ function Bundle() {
         },
       ],
     };
-  }, [globalAgency.currentAgency?.id, isAgencyUser]);
+  }, [globalAgency.currentAgency?.id]);
 
   const examsQuery = useGetAllExamsQuery({
     variables: {

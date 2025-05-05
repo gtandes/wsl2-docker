@@ -6,10 +6,11 @@ import {
   Junction_Directus_Users_Exams_Filter,
   useGetAllUserExamLazyQuery,
   useGetAllUserExamQuery,
+  UserForReportsFragment,
 } from "api";
 import Button from "../../../../../components/Button";
 import { FilterComboInfoTooltip } from "../../../../../components/FilterComboInfoTooltip";
-import { exportToCsv } from "../../../../../utils/utils";
+import { exportToCsv2 } from "../../../../../utils/utils";
 import { first } from "lodash";
 import { useQueryParam, withDefault, JsonParam } from "use-query-params";
 import { AnalyticsExamsReports } from "../../../../../components/admin/reports/exams/AnalyticsExamsReports";
@@ -18,6 +19,7 @@ import { ExamsReportsExport } from "../../../../../types/reports";
 import { formatDateTime } from "../../../../../utils/format";
 import { ExamReportLayout } from "../../../../../components/admin/reports/exams/ExamReportLayout";
 import { ExamsDetailFilters } from "../../../../../components/admin/reports/exams/ExamsDetailFilters";
+import { useAgency } from "../../../../../hooks/useAgency";
 
 const PAGE_SIZE = 10;
 
@@ -25,6 +27,8 @@ function ExamsDetailsReport() {
   const [filters, setFilters] = useState<Junction_Directus_Users_Exams_Filter>(
     {}
   );
+
+  const { currentAgency } = useAgency();
 
   const [sort, setSort] = useQueryParam(
     "sort",
@@ -43,6 +47,27 @@ function ExamsDetailsReport() {
       pageSize: PAGE_SIZE,
     })
   );
+
+  const getDepartments = (
+    user: UserForReportsFragment,
+    currentAgencyId?: string
+  ) => {
+    const xcurrentAgency = user.agencies?.find(
+      (agency) => agency?.agencies_id?.id! === currentAgencyId
+    );
+
+    return xcurrentAgency?.departments?.map((d) => d!.departments_id?.name!)!;
+  };
+  const getEmployeeNumber = (
+    user: UserForReportsFragment,
+    currentAgencyId?: string
+  ) => {
+    const xcurrentAgency: any = user.agencies?.find(
+      (agency) => agency?.agencies_id?.id! === currentAgencyId
+    );
+
+    return xcurrentAgency?.employee_number ?? "";
+  };
 
   const [fetchExams, { loading: isExporting }] = useGetAllUserExamLazyQuery();
 
@@ -87,8 +112,11 @@ function ExamsDetailsReport() {
           expires: formatDateTime(exam.expires_on),
           date_created: formatDateTime(exam.agency?.date_created),
           date_join: formatDateTime(exam.agency?.date_created),
-          employee_number:
-            exam.agency?.directus_users?.[0]?.employee_number || "",
+          employee_number: getEmployeeNumber(
+            exam.directus_users_id,
+            currentAgency?.id
+          ),
+          department: getDepartments(exam.directus_users_id, currentAgency?.id),
         }));
 
         allExams = allExams.concat(transformedExams);
@@ -97,7 +125,7 @@ function ExamsDetailsReport() {
         offset += PAGE_SIZE;
       }
 
-      exportToCsv<ExamsReportsExport>("exams-reports", allExams);
+      exportToCsv2<ExamsReportsExport>("exams-reports", allExams);
     } catch (error) {
       console.error("Error exporting report:", error);
     }

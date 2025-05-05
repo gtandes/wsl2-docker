@@ -9,7 +9,7 @@ import { AvatarMenu } from "../../../../components/AvatarMenu";
 import { ExamHeader } from "../../../../components/clinicians/ExamHeader";
 import { useAuth } from "../../../../hooks/useAuth";
 import { useRouter } from "next/router";
-import { useGetUserExamQuery } from "api";
+import { useGetUserExamDetailsQuery } from "api";
 import { withAuth } from "../../../../hooks/withAuth";
 import { ClinicianGroup } from "../../../../types/roles";
 import { clinicianNavigation } from "../../../../components/clinicians/DashboardLayout";
@@ -31,9 +31,11 @@ import { query } from "../../../../utils/utils";
 import Lightbox from "../../../../components/utils/Lightbox";
 import { Timer } from "../../../../components/clinicians/Timer";
 import BackgroundImg from "../../../../assets/background.png";
+import indexedDb, { createDbConfig } from "../../../../lib/indexedDb";
 
 export interface MultipleChoiceSingleAnswerQuestion {
   id: string;
+  assignment_id: number;
   question: {
     question_text: string;
     answers: SingleAnswer[];
@@ -54,7 +56,7 @@ interface ExamState {
   currentQuestion: number;
   canDisplay: boolean | undefined;
   question: MultipleChoiceSingleAnswerQuestion | undefined;
-  selectedAnswer: string | undefined;
+  selectedAnswer: string;
   showFormError: boolean;
   questionStart: DOMHighResTimeStamp;
   saving: boolean;
@@ -62,24 +64,26 @@ interface ExamState {
   hasError: boolean;
   isTimeUp: boolean;
   retrying: boolean;
+  retryCount: number;
+  isLoading: boolean;
 }
 
 const RETRY_DELAY = 1000;
 const RETRY_ATTEMPTS = 3;
-const JITTER_FACTOR = 0.2; // 20 percent jitter
-let retryCount = 0;
+const JITTER_FACTOR = 0.2;
 
 function QuestionExam() {
   const { currentUser } = useAuth();
   const router = useRouter();
   const { assignment_id } = router.query;
   const [imageError, setImageError] = useState(false);
+  const indexedDbConfig = createDbConfig("questions");
 
   const [examState, setExamState] = useState<ExamState>({
     currentQuestion: 1,
     canDisplay: true,
     question: undefined,
-    selectedAnswer: undefined,
+    selectedAnswer: "",
     showFormError: false,
     questionStart: Date.now(),
     saving: false,
@@ -87,6 +91,8 @@ function QuestionExam() {
     hasError: false,
     isTimeUp: false,
     retrying: false,
+    retryCount: 0,
+    isLoading: false,
   });
 
   const serverTimeFetchedRef = useRef(false);
@@ -127,13 +133,11 @@ function QuestionExam() {
         }));
       }
 
-      if (!serverTimeFetchedRef.current) {
-        updateServerTime();
-      }
+      updateServerTime();
     };
   }, [fetchServerTime]);
 
-  const { data, loading, error } = useGetUserExamQuery({
+  const { data, loading, error } = useGetUserExamDetailsQuery({
     variables: {
       filter: {
         id: { _eq: assignment_id as string },
@@ -167,85 +171,86 @@ function QuestionExam() {
   );
 
   const getQuestion = useCallback(
-    async (retryCount = 0) => {
+    async (retryCounter = 0) => {
       if (!exam?.id) return;
 
-      setExamState((prev) => ({
-        ...prev,
-        saving: true,
-        hasError: false,
-        retrying: retryCount > 0,
-      }));
+      const completedQuestion = await indexedDb.countAnsweredQuestions(
+        indexedDbConfig
+      );
 
       try {
-        const response = await query(
-          `/cms/exams/question?assignment_id=${exam.id}`,
-          "GET"
+        const currentQuestionId = exam?.question_versions_list
+          ? Object.values(exam.question_versions_list)[completedQuestion]
+          : undefined;
+
+        const activeQuestion = await indexedDb.getQuestionById(
+          currentQuestionId,
+          indexedDbConfig
         );
 
-        if (!response.ok) {
-          throw new Error(`Failed to fetch question: ${response.status}`);
+        if (!activeQuestion) {
+          throw new Error(`Failed to fetch question!`);
         }
 
-        const question = await response.json();
+        const currentQuestionData: MultipleChoiceSingleAnswerQuestion =
+          activeQuestion;
 
         setExamState((prev) => ({
           ...prev,
           showFormError: false,
           questionStart: serverTimeRef.current,
-          selectedAnswer: undefined,
-          question,
-          currentQuestion: question.exam_result_length + 1,
+          selectedAnswer: "",
+          question: currentQuestionData,
           saving: false,
           hasError: false,
           isSubmitting: false,
           retrying: false,
+          retryCount: 0,
+          currentQuestion: completedQuestion + 1,
         }));
-        retryCount = 0;
       } catch (error) {
-        if (retryCount < RETRY_ATTEMPTS) {
-          setExamState((prev) => ({
+        const newRetryCount = retryCounter + 1;
+        const shouldRetry = newRetryCount < RETRY_ATTEMPTS;
+        setExamState((prev) => {
+          if (shouldRetry) {
+            notify(
+              CUSTOM_MESSAGE(
+                "error",
+                <>Error getting questions. Retrying...</>,
+                <>
+                  Attempt {newRetryCount} of {RETRY_ATTEMPTS}. Please wait a
+                  moment...
+                </>
+              )
+            );
+          } else {
+            console.error(`Error Getting Question: `, error);
+
+            notify(
+              CUSTOM_MESSAGE(
+                "error",
+                <>Error getting question.</>,
+                <>Please refresh the page or try again in a few minutes.</>
+              )
+            );
+          }
+
+          return {
             ...prev,
-            retrying: true,
-            retryAttempt: retryCount + 1,
-            saving: true,
-          }));
-          retryCount++;
-
-          notify(
-            CUSTOM_MESSAGE(
-              "error",
-              <>Error getting questions. Retrying...</>,
-              <>
-                Attempt {retryCount} of {RETRY_ATTEMPTS}. Please wait a
-                moment...
-              </>
-            )
-          );
-
-          const increasingDelay = RETRY_DELAY * (1 << (retryCount - 1));
+            saving: shouldRetry,
+            hasError: !shouldRetry,
+            canDisplay: shouldRetry,
+            isSubmitting: false,
+            retrying: shouldRetry,
+            retryCount: newRetryCount,
+          };
+        });
+        if (shouldRetry) {
+          const increasingDelay = RETRY_DELAY * Math.max(1, newRetryCount);
           const jitterRange = increasingDelay * JITTER_FACTOR;
           const jitter = Math.random() * jitterRange;
           const delayWithJitter = increasingDelay + jitter;
-
-          setTimeout(() => getQuestion(retryCount + 1), delayWithJitter);
-        } else {
-          console.error(`Error Getting Question: `, error);
-          setExamState((prev) => ({
-            ...prev,
-            saving: false,
-            hasError: true,
-            canDisplay: false,
-            isSubmitting: false,
-            retrying: false,
-          }));
-          notify(
-            CUSTOM_MESSAGE(
-              "error",
-              <>Error getting question.</>,
-              <>Please refresh the page or try again in a few minutes.</>
-            )
-          );
+          setTimeout(() => getQuestion(retryCounter + 1), delayWithJitter);
         }
       }
     },
@@ -256,7 +261,7 @@ function QuestionExam() {
     if (exam?.id) {
       getQuestion();
     }
-  }, [exam?.id, getQuestion]);
+  }, [exam?.id]);
 
   const handleSubmit = async () => {
     const { selectedAnswer, question, questionStart, isSubmitting } = examState;
@@ -275,7 +280,6 @@ function QuestionExam() {
       hasError: false,
     }));
 
-    // define submission function for retries
     const attemptSubmission = async (): Promise<boolean> => {
       try {
         if (!exam?.id || !question?.id) {
@@ -286,7 +290,6 @@ function QuestionExam() {
           assignment_id: exam.id,
           question_version_id: question.id,
           answer_id: selectedAnswer,
-
           time_taken: differenceInSeconds(serverTimeRef.current, questionStart),
         });
 
@@ -309,9 +312,15 @@ function QuestionExam() {
           }
         }
 
-        if (examState.currentQuestion === totalQuestions) {
-          await router.push(`/clinician/exams/${assignment_id}/result`);
+        await indexedDb.updateQuestionAnsweredStatus(
+          question.question_id,
+          true,
+          indexedDbConfig
+        );
 
+        const isLastQuestion = examState.currentQuestion === totalQuestions;
+
+        if (isLastQuestion) {
           setExamState((prev) => ({
             ...prev,
             saving: false,
@@ -320,18 +329,31 @@ function QuestionExam() {
             isTimeUp: false,
             canDisplay: true,
             retrying: false,
+            retryCount: 0,
+            selectedAnswer: "",
           }));
+
+          await indexedDb.clearQuestions(indexedDbConfig);
+
+          await router.push(`/clinician/exams/${assignment_id}/result`);
         } else {
-          await getQuestion();
           setExamState((prev) => ({
             ...prev,
+            currentQuestion: prev.currentQuestion + 1,
+            saving: false,
+            isSubmitting: false,
             hasError: false,
+            retryCount: 0,
+            selectedAnswer: "",
           }));
+
+          getQuestion();
         }
-        retryCount = 0;
 
         return true;
       } catch (error) {
+        const newRetryCount = examState.retryCount + 1;
+
         const isRetryable =
           (error instanceof Error && error.message.includes("timeout")) ||
           (error instanceof Error && error.message.includes("504")) ||
@@ -340,13 +362,24 @@ function QuestionExam() {
             error.message.includes("Submission failed") &&
             !error.message.includes("400"));
 
-        if (isRetryable && retryCount < RETRY_ATTEMPTS) {
-          retryCount++;
+        const shouldRetry = isRetryable && newRetryCount < RETRY_ATTEMPTS;
 
-          const increasingDelay = RETRY_DELAY * (1 << (retryCount - 1));
+        if (shouldRetry) {
+          const increasingDelay = RETRY_DELAY * (1 << (newRetryCount - 1));
           const jitterRange = increasingDelay * JITTER_FACTOR;
           const jitter = Math.random() * jitterRange;
           const delayWithJitter = increasingDelay + jitter;
+
+          notify(
+            CUSTOM_MESSAGE(
+              "error",
+              <>Error submitting answer. Retrying...</>,
+              <>
+                Attempt {newRetryCount} of {RETRY_ATTEMPTS}. Please wait a
+                moment...
+              </>
+            )
+          );
 
           setExamState((prev) => ({
             ...prev,
@@ -354,30 +387,44 @@ function QuestionExam() {
             isSubmitting: true,
             hasError: false,
             retrying: true,
+            retryCount: newRetryCount,
           }));
-          notify(
-            CUSTOM_MESSAGE(
-              "error",
-              <>Error submitting answer. Retrying...</>,
-              <>
-                Attempt {retryCount} of {RETRY_ATTEMPTS}. Please wait a
-                moment...
-              </>
-            )
-          );
 
-          await new Promise((resolve) => setTimeout(resolve, delayWithJitter));
-
-          return await attemptSubmission();
+          setTimeout(() => attemptSubmission(), delayWithJitter);
+          return false;
         } else {
-          throw error;
+          const isGatewayTimeout =
+            error instanceof Error && error.message.includes("504");
+
+          if (isGatewayTimeout) {
+            notify(
+              CUSTOM_MESSAGE(
+                "error",
+                <>We are experiencing high traffic at the moment.</>,
+                <>Please refresh the page or try again in a few minutes.</>
+              )
+            );
+          } else {
+            notify(GENERIC_ERROR);
+          }
+
+          setExamState((prev) => ({
+            ...prev,
+            saving: false,
+            isSubmitting: false,
+            hasError: true,
+            canDisplay: false,
+            retrying: false,
+            retryCount: newRetryCount,
+          }));
+
+          return false;
         }
       }
     };
 
     try {
       await attemptSubmission();
-      retryCount = 0;
     } catch (error: any) {
       setExamState((prev) => ({
         ...prev,
@@ -413,12 +460,13 @@ function QuestionExam() {
     () => (
       <RadioGroup
         className="mt-4 sm:mt-10"
-        onChange={(selectedValue) =>
+        onChange={(selectedValue) => {
           setExamState((prev) => ({
             ...prev,
             selectedAnswer: selectedValue,
-          }))
-        }
+          }));
+        }}
+        value={examState.selectedAnswer}
       >
         <div className="rounded-md bg-white">
           {examState.question?.question.answers.map((answer, index) => (
@@ -466,10 +514,11 @@ function QuestionExam() {
         </div>
       </RadioGroup>
     ),
-    [examState.question?.question.answers]
+    [examState.question?.question.answers, examState.selectedAnswer]
   );
 
-  const handleTimeIsUp = () => {
+  const handleTimeIsUp = async () => {
+    await indexedDb.clearQuestions(indexedDbConfig);
     setExamState((prev) => ({
       ...prev,
       canDisplay: false,
@@ -632,7 +681,7 @@ function QuestionExam() {
                       label="Submit"
                       type="button"
                       classes="mt-6 ml-auto !w-36 self-end"
-                      loading={examState.saving}
+                      loading={examState.saving || loading}
                       disabled={isSubmitDisabled}
                       onClick={handleSubmit}
                     />

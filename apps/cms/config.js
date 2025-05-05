@@ -11,7 +11,7 @@ module.exports = function (env) {
     DB_PASSWORD: env.DB_PASSWORD,
     DB_SSL: env.DB_SSL,
     DB_POOL__MIN: 0,
-    DB_POOL__MAX: env.DB_POOL__MAX || 30,
+    DB_POOL__MAX: env.DB_POOL__MAX || 500,
     ...(env.DB_POOL__ACQUIRE_TIMEOUT_MILLIS && {
       DB_POOL__ACQUIRE_TIMEOUT_MILLIS: env.DB_POOL__ACQUIRE_TIMEOUT_MILLIS,
     }),

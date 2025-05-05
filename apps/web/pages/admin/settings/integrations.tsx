@@ -9,13 +9,21 @@ import { useFeatureFlags } from "../../../hooks/useFeatureFlags";
 import BullhornIntegration from "../../../components/admin/settings/integrations/BullhornIntegration";
 import { useAuth } from "../../../hooks/useAuth";
 import { useAgency } from "../../../hooks/useAgency";
+import NotAuthorized from "../../not-authorized";
 
 function Integrations() {
+  const auth = useAuth();
   const { flags } = useFeatureFlags();
   const globalAgency = useAgency();
   const { currentUser } = useAuth();
   const isAgencySelected = !!globalAgency.currentAgency?.id;
 
+  if (
+    auth.currentUser?.role === UserRole.UsersManager ||
+    auth.currentUser?.role === UserRole.CredentialingUser
+  ) {
+    return <NotAuthorized />;
+  }
   return (
     <AdminLayout>
       <AdminSettingsLayout>

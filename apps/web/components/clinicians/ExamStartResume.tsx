@@ -14,7 +14,7 @@ import { useAgency } from "../../hooks/useAgency";
 import { useAuth } from "../../hooks/useAuth";
 import { useIntegrityAdvocate } from "../../hooks/useIntegrityAdvocate";
 import { ExamHeader } from "./ExamHeader";
-
+import indexedDb, { QuestionItem, createDbConfig } from "../../lib/indexedDb";
 interface Props {
   start?: boolean;
   resume?: boolean;
@@ -25,6 +25,7 @@ interface Props {
 export const ExamStartResume: React.FC<Props> = ({ exam }) => {
   const [loading, setLoading] = useState(false);
   const [timerHidden, setTimerHidden] = useState(false);
+  const customIndexedDbConfig = createDbConfig("questions");
 
   const router = useRouter();
   const apolloClient = useApolloClient();
@@ -87,7 +88,6 @@ export const ExamStartResume: React.FC<Props> = ({ exam }) => {
       clearTimeout(timeoutId);
 
       if (response.status !== 200) {
-        console.log(`Response Status: ${response.status}`);
         switch (response.status) {
           case 401:
             notify({
@@ -130,13 +130,23 @@ export const ExamStartResume: React.FC<Props> = ({ exam }) => {
         }
       }
 
+      const jsonResponse = await response.json();
+
+      if (Array.isArray(jsonResponse.data) && jsonResponse.data.length > 0) {
+        try {
+          await indexedDb.clearQuestions(customIndexedDbConfig);
+          await indexedDb.storeQuestions(
+            jsonResponse.data,
+            customIndexedDbConfig
+          );
+        } catch (error) {
+          console.error("Error Storing Data to IndexedDb", error);
+        }
+      }
+
       if (!isProctored) {
         await router.push(`/clinician/exams/${exam.id}/question`);
       }
-
-      apolloClient.refetchQueries({
-        include: ["getUserExam"],
-      });
     } catch (error: any) {
       if (error.name === "AbortError") {
         notify({
@@ -161,7 +171,6 @@ export const ExamStartResume: React.FC<Props> = ({ exam }) => {
 
   const handleExamNavigation = useCallback(async () => {
     if (!exam?.id) {
-      console.log("No exam id found");
       return;
     }
 

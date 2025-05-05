@@ -12,6 +12,7 @@ import {
   useUpdatePolicyCompetencyMutation,
   useUpdateSkillChecklistCompetencyMutation,
   useUserCompetenciesQuery,
+  useUserCompetenciesHshAdminViewQuery,
 } from "api";
 import { useRouter } from "next/router";
 import { useAdminTable } from "../../../../hooks/useAdminTable";
@@ -85,7 +86,7 @@ function Competencies() {
     },
   });
 
-  const userCompetenciesQuery = useUserCompetenciesQuery({
+  const queryVariables = {
     variables: {
       user: userId,
       agencies: globalAgency.currentAgency?.id
@@ -94,7 +95,42 @@ function Competencies() {
       offset: page.pageIndex * PAGE_SIZE,
     },
     skip: globalAgency.currentAgency?.id === undefined,
-  });
+  };
+
+  function useUserCompetencies(
+    userId: string,
+    pageIndex: number,
+    agencyId?: string,
+    role?: UserRole
+  ) {
+    const variables = {
+      user: userId,
+      agencies: agencyId ? [agencyId] : [],
+      offset: pageIndex * PAGE_SIZE,
+    };
+
+    const isAdmin = role === UserRole.HSHAdmin;
+    const shouldSkip = !agencyId;
+
+    const hshAdminQuery = useUserCompetenciesHshAdminViewQuery({
+      variables,
+      skip: shouldSkip || !isAdmin,
+    });
+
+    const defaultQuery = useUserCompetenciesQuery({
+      variables,
+      skip: shouldSkip || isAdmin,
+    });
+
+    return isAdmin ? hshAdminQuery : defaultQuery;
+  }
+
+  const userCompetenciesQuery = useUserCompetencies(
+    userId,
+    page.pageIndex,
+    globalAgency.currentAgency?.id,
+    currentUser?.role
+  );
 
   const competencyIds = {
     modules:
@@ -442,15 +478,22 @@ function Competencies() {
             ? row.original.score_history.at(-1)
             : null;
 
-          const isTimedOut =
-            lastAttemptDetails?.score_status ===
-              CompetencyState.FAILED_TIMED_OUT ||
-            lastAttemptDetails?.score_status === CompetencyState.IN_REVIEW;
+          const scoreStatus = lastAttemptDetails?.score_status;
 
-          return !isTimedOut
-            ? row.original.score
-              ? `${row.original.score}%`
-              : "-"
+          const isTimedOut =
+            scoreStatus === CompetencyState.FAILED_TIMED_OUT ||
+            scoreStatus === CompetencyState.IN_REVIEW;
+
+          const isFinalState =
+            scoreStatus === CompetencyState.COMPLETED ||
+            scoreStatus === CompetencyState.FINISHED;
+
+          if (isTimedOut) {
+            return "-";
+          }
+
+          return isFinalState && row.original.score
+            ? `${row.original.score}%`
             : "-";
         },
       },
@@ -591,23 +634,27 @@ function Competencies() {
       children: (onClose) => (
         <AssignSingleUserCompentenciesModal
           users={sysUserQuery.data?.users as Directus_Users[]}
-          excludedIds={{
-            modules: competencyIds.modules.filter(
-              (id): id is string => id !== undefined
-            ),
-            exams: competencyIds.exams.filter(
-              (id): id is string => id !== undefined
-            ),
-            policies: competencyIds.policies.filter(
-              (id): id is string => id !== undefined
-            ),
-            skillChecklists: competencyIds.skillChecklists.filter(
-              (id): id is string => id !== undefined
-            ),
-            documents: competencyIds.documents.filter(
-              (id): id is string => id !== undefined
-            ),
-          }}
+          excludedIds={
+            currentUser?.role !== UserRole.HSHAdmin
+              ? {
+                  modules: competencyIds.modules.filter(
+                    (id): id is string => id !== undefined
+                  ),
+                  exams: competencyIds.exams.filter(
+                    (id): id is string => id !== undefined
+                  ),
+                  policies: competencyIds.policies.filter(
+                    (id): id is string => id !== undefined
+                  ),
+                  skillChecklists: competencyIds.skillChecklists.filter(
+                    (id): id is string => id !== undefined
+                  ),
+                  documents: competencyIds.documents.filter(
+                    (id): id is string => id !== undefined
+                  ),
+                }
+              : undefined
+          }
           refreshUserAssignments={userCompetenciesQuery.refetch}
           onClose={onClose}
         />

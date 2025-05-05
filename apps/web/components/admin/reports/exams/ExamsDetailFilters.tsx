@@ -1,21 +1,23 @@
 import {
   useGetAllExamsForReportsFilterQuery,
   Junction_Directus_Users_Exams_Filter,
-  useSysUsersWithExamsQuery,
+  useDepartmentsQuery,
+  useLocationsQuery,
 } from "api";
 import { startCase } from "lodash";
 import { useState, useMemo, useEffect } from "react";
 import { useDebounce } from "usehooks-ts";
 import { useAgency } from "../../../../hooks/useAgency";
-import { UserRole } from "../../../../types/roles";
 import {
   FilterCombo,
   FilterComboOptions,
 } from "../../../clinicians/FilterCombo";
 import { statusOptions } from "../../../exams/StatusOptions";
 import DateInput from "../../../DateInput";
-import { DirectusStatus } from "types";
+import { DirectusStatus, ExpirationType } from "types";
 import { COMBOBOX_RESULTS_AMOUNT } from "../../../../types/global";
+import { SearchInput } from "../../../SearchInput";
+import { useUsersByFilters } from "../../../../hooks/useUserByFilters";
 
 interface ExamsDetailFiltersProps {
   setFilters: (filters: Junction_Directus_Users_Exams_Filter) => void;
@@ -28,18 +30,39 @@ export const ExamsDetailFilters: React.FC<ExamsDetailFiltersProps> = ({
 }) => {
   const globalAgency = useAgency();
 
-  const [userFilter, setUserFilter] = useState<FilterComboOptions[]>([]);
+  const { getUserBy } = useUsersByFilters(
+    globalAgency.currentAgency?.id || null
+  );
+  const [searchQuery, setSearchQuery] = useState<string[] | null>(null);
+
   const [examsFilter, setExamsFilter] = useState<FilterComboOptions[]>([]);
+
+  const [departmentsFilter, setDepartmentsFilter] = useState<
+    FilterComboOptions[]
+  >([]);
+
+  const [locationsFilter, setLocationsFilter] = useState<FilterComboOptions[]>(
+    []
+  );
   const [seachExamsQuery, setSearchExamsQuery] = useState("");
-  const [seachClinicianQuery, setSearchClinicianQuery] = useState("");
+  const [seachDepartmentsQuery, setSearchDepartmentsQuery] =
+    useState<string>("");
+  const [seachLocationsQuery, setSearchLocationsQuery] = useState<string>("");
   const debouncedSearchExamsQuery = useDebounce(
     seachExamsQuery,
     DEBOUNCE_TIMEOUT
   );
-  const debouncedSearchClinicianQuery = useDebounce(
-    seachClinicianQuery,
+
+  const debouncedSearchDepartmentsQuery = useDebounce(
+    seachDepartmentsQuery,
     DEBOUNCE_TIMEOUT
   );
+  const debouncedSearchLocationsQuery = useDebounce(
+    seachLocationsQuery,
+    DEBOUNCE_TIMEOUT
+  );
+
+  const debouncedSearchQuery = useDebounce(searchQuery, 500);
 
   const [completedOnDateStartFilter, setCompletedOnDateStartFilter] =
     useState<string>("");
@@ -87,119 +110,159 @@ export const ExamsDetailFilters: React.FC<ExamsDetailFiltersProps> = ({
     [examsOptionsQuery]
   );
 
-  const cliniciansQuery = useSysUsersWithExamsQuery({
+  const expirationFilterOptions = [
+    {
+      label: "Annual",
+      value: ExpirationType.YEARLY,
+    },
+    {
+      label: "One-Time",
+      value: ExpirationType.ONE_TIME,
+    },
+    {
+      label: "Bi-Annual",
+      value: ExpirationType.BIANNUAL,
+    },
+  ];
+
+  const departmentsQuery = useDepartmentsQuery({
     variables: {
-      search: debouncedSearchClinicianQuery,
       filter: {
+        status: { _eq: DirectusStatus.PUBLISHED },
         ...(globalAgency.currentAgency?.id && {
-          agencies: {
-            agencies_id: { id: { _eq: globalAgency.currentAgency.id } },
-          },
+          agency: { id: { _eq: globalAgency.currentAgency?.id } },
         }),
-        exams: {
-          id: { _nnull: true },
-        },
-        role: { id: { _eq: UserRole.Clinician } },
       },
+      limit: COMBOBOX_RESULTS_AMOUNT,
+      search: debouncedSearchDepartmentsQuery,
     },
     skip: !globalAgency.loaded,
   });
 
-  const usersFilterOptions = useMemo<FilterComboOptions[]>(
-    () =>
-      cliniciansQuery.data?.users?.map((user) => ({
-        label: `${user.first_name} ${user.last_name}`,
-        value: user.id,
-      })) as FilterComboOptions[],
-    [cliniciansQuery]
-  );
+  const locationsQuery = useLocationsQuery({
+    variables: {
+      filter: {
+        status: { _eq: DirectusStatus.PUBLISHED },
+        ...(globalAgency.currentAgency?.id && {
+          agency: { id: { _eq: globalAgency.currentAgency?.id } },
+        }),
+      },
+      limit: COMBOBOX_RESULTS_AMOUNT,
+      search: debouncedSearchLocationsQuery,
+    },
+    skip: !globalAgency.loaded,
+  });
 
-  const expirationFilterOptions = [
-    {
-      label: "Annual",
-      value: "yearly",
-    },
-    {
-      label: "One-Time",
-      value: "one-time",
-    },
-  ];
+  const departmentsOptions = useMemo<FilterComboOptions[]>(
+    () =>
+      departmentsQuery.data?.departments.map((department) => ({
+        label: department.name,
+        value: department.id,
+      })) as FilterComboOptions[],
+    [departmentsQuery.data?.departments]
+  );
+  const locationsOptions = useMemo<FilterComboOptions[]>(
+    () =>
+      locationsQuery.data?.locations.map((location) => ({
+        label: location.name,
+        value: location.id,
+      })) as FilterComboOptions[],
+    [locationsQuery.data?.locations]
+  );
 
   useEffect(() => {
     loadFilters();
     return () => {};
 
-    function loadFilters() {
-      if (
-        !globalAgency.loaded ||
-        cliniciansQuery.loading ||
-        examsOptionsQuery.loading
-      )
-        return;
+    async function loadFilters() {
+      if (!globalAgency.loaded || examsOptionsQuery.loading) return;
 
-      let filtersConfig = { status: { _neq: DirectusStatus.ARCHIVED } };
+      let filtersConfig: Junction_Directus_Users_Exams_Filter = {
+        status: { _neq: DirectusStatus.ARCHIVED },
+      };
+      const userIdFilters: any[] = [];
+      const directusUsersFilter: any = {};
 
-      if (userFilter.length > 0) {
-        filtersConfig = Object.assign(filtersConfig, {
-          directus_users_id: {
-            id: {
-              _in: userFilter.map((option) => option.value),
-            },
-          },
+      if (debouncedSearchQuery && debouncedSearchQuery.length > 0) {
+        const validTerms = debouncedSearchQuery.filter(
+          (term) => term.trim() !== ""
+        );
+        if (validTerms.length > 0) {
+          directusUsersFilter._or = validTerms.flatMap((term) => [
+            { first_name: { _icontains: term } },
+            { last_name: { _icontains: term } },
+            { email: { _icontains: term } },
+          ]);
+        }
+      }
+
+      if (globalAgency.currentAgency?.id) {
+        const users = await getUserBy(
+          [],
+          locationsFilter,
+          departmentsFilter,
+          []
+        );
+
+        userIdFilters.push({
+          id: { _in: users as string[] },
         });
+      }
+
+      if (userIdFilters.length > 0) {
+        filtersConfig.directus_users_id =
+          userIdFilters.length === 1
+            ? userIdFilters[0]
+            : { _and: userIdFilters };
+      }
+
+      if (Object.keys(directusUsersFilter).length) {
+        filtersConfig.directus_users_id =
+          Object.keys(directusUsersFilter).length === 1
+            ? directusUsersFilter
+            : {
+                _and: Object.entries(directusUsersFilter).map(
+                  ([key, value]) => ({ [key]: value })
+                ),
+              };
       }
 
       if (examsFilter.length > 0) {
-        filtersConfig = Object.assign(filtersConfig, {
-          exams_id: {
-            id: { _in: examsFilter.map((option) => option.value) },
-          },
-        });
+        filtersConfig.exams_id = {
+          id: { _in: examsFilter.map((option) => option.value) },
+        };
       }
 
       if (statusFilter.length > 0) {
-        filtersConfig = Object.assign(filtersConfig, {
-          status: { _in: statusFilter.map((option) => option.value) },
-        });
+        filtersConfig.status = {
+          _in: statusFilter.map((option) => option.value),
+        };
       }
 
       if (expirationFilter.length > 0) {
-        filtersConfig = Object.assign(filtersConfig, {
-          exam_versions_id: {
-            expiration: {
-              _in: expirationFilter.map((option) => option.value),
-            },
+        filtersConfig.exam_versions_id = {
+          expiration: {
+            _in: expirationFilter.map((option) => option.value),
           },
-        });
+        };
       }
 
       if (completedOnDateStartFilter || completedOnDateEndFilter) {
-        const completedFilter: Junction_Directus_Users_Exams_Filter = {
-          _and: [],
-        };
-
-        if (completedOnDateStartFilter) {
-          completedFilter._and?.push({
-            finished_on: { _gte: completedOnDateStartFilter },
-          });
-        }
-        if (completedOnDateEndFilter) {
-          completedFilter._and?.push({
-            finished_on: { _lte: completedOnDateEndFilter },
-          });
-        }
-
-        filtersConfig = Object.assign(filtersConfig, completedFilter);
+        filtersConfig._and = [
+          ...(filtersConfig._and ?? []),
+          ...(completedOnDateStartFilter
+            ? [{ finished_on: { _gte: completedOnDateStartFilter } }]
+            : []),
+          ...(completedOnDateEndFilter
+            ? [{ finished_on: { _lte: completedOnDateEndFilter } }]
+            : []),
+        ];
       }
 
       if (globalAgency.currentAgency?.id) {
         setFilters({
           _and: [
-            {
-              agency: {
-                id: { _eq: globalAgency.currentAgency?.id },
-              },
-            },
+            { agency: { id: { _eq: globalAgency.currentAgency?.id } } },
             filtersConfig,
           ],
         });
@@ -209,7 +272,6 @@ export const ExamsDetailFilters: React.FC<ExamsDetailFiltersProps> = ({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
-    cliniciansQuery.loading,
     completedOnDateEndFilter,
     completedOnDateStartFilter,
     examsFilter,
@@ -217,22 +279,30 @@ export const ExamsDetailFilters: React.FC<ExamsDetailFiltersProps> = ({
     expirationFilter,
     globalAgency,
     statusFilter,
-    userFilter,
+    debouncedSearchQuery,
+    locationsFilter,
+    departmentsFilter,
   ]);
 
   return (
     <>
       <div className="noprint flex flex-wrap">
         <div className="mr-4 w-72">
-          <FilterCombo
-            label="Clinicians"
-            options={usersFilterOptions}
-            filters={userFilter}
-            filterKey="label"
-            setFilters={setUserFilter}
-            setDebounced={setSearchClinicianQuery}
-            placeholder="Filter by Clinician"
-          />
+          <div className="mt-5 flex flex-col">
+            <label
+              htmlFor="search-email"
+              className="line-clamp-1 text-sm font-medium leading-6 text-gray-900"
+            >
+              Clinicians
+            </label>
+            <SearchInput
+              inputId="search-email"
+              placeholder="Search by Name or Email"
+              onChange={(value) =>
+                setSearchQuery(value.replace(/\s+/g, " ").split(" "))
+              }
+            />
+          </div>
         </div>
         <div className="mr-4 w-72">
           <FilterCombo
@@ -261,6 +331,30 @@ export const ExamsDetailFilters: React.FC<ExamsDetailFiltersProps> = ({
             filters={expirationFilter}
             setFilters={setExpirationFilter}
             placeholder="Filter by Frequency"
+          />
+        </div>
+        <div className="mr-4 w-72">
+          <FilterCombo
+            label="Department"
+            options={departmentsOptions}
+            filters={departmentsFilter}
+            filterKey="label"
+            disabled={!globalAgency.currentAgency?.id}
+            setFilters={setDepartmentsFilter}
+            setDebounced={setSearchDepartmentsQuery}
+            placeholder="Filter by Department"
+          />
+        </div>
+        <div className="mr-4 w-72">
+          <FilterCombo
+            label="Location"
+            options={locationsOptions}
+            filters={locationsFilter}
+            filterKey="label"
+            disabled={!globalAgency.currentAgency?.id}
+            setFilters={setLocationsFilter}
+            setDebounced={setSearchLocationsQuery}
+            placeholder="Filter by Location"
           />
         </div>
       </div>

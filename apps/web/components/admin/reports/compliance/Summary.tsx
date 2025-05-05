@@ -43,8 +43,9 @@ const clinicianRoleFilter = { role: { id: { _eq: UserRole.Clinician } } };
 export const ComplianceSummary: React.FC = ({}) => {
   const currentAgency = useAgency();
   const [filters, setFilters] = useState<Directus_Users_Filter>({ _and: [] });
-  const agencyFilters =
-    currentAgency && currentAgency.currentAgency?.id
+
+  const agencyFilters = useMemo(() => {
+    return currentAgency && currentAgency.currentAgency?.id
       ? {
           agencies: {
             agencies_id: {
@@ -53,6 +54,7 @@ export const ComplianceSummary: React.FC = ({}) => {
           },
         }
       : null;
+  }, [currentAgency]);
 
   const completedAssignmentsFilters = useMemo(() => {
     const baseFilters = structuredClone(filters);
@@ -124,7 +126,7 @@ export const ComplianceSummary: React.FC = ({}) => {
     });
 
     return baseFilters;
-  }, [filters, currentAgency.currentAgency]);
+  }, [filters, agencyFilters]);
 
   const awaitingUserLoginFilters = useMemo(() => {
     const baseFilters = structuredClone(filters);
@@ -140,32 +142,27 @@ export const ComplianceSummary: React.FC = ({}) => {
         {
           exams: {
             id: { _nnull: true },
-            expires_on: { _gte: lastHour },
           },
         },
         {
           modules: {
             id: { _nnull: true },
-            expires_on: { _gte: lastHour },
           },
         },
         {
           sc_definitions: {
             id: { _nnull: true },
-            expires_on: { _gte: lastHour },
           },
         },
         {
           documents: {
             id: { _nnull: true },
-            expires_on: { _gte: lastHour },
             status: { _eq: DirectusStatus.PUBLISHED },
           },
         },
         {
           policies: {
             id: { _nnull: true },
-            expires_on: { _gte: lastHour },
             status: { _eq: DirectusStatus.PUBLISHED },
           },
         },
@@ -173,7 +170,7 @@ export const ComplianceSummary: React.FC = ({}) => {
     });
 
     return baseFilters;
-  }, [filters, currentAgency.currentAgency]);
+  }, [filters, agencyFilters]);
 
   const incompleteAssignmentsFilters = useMemo(() => {
     const baseFilters = structuredClone(filters);
@@ -240,7 +237,7 @@ export const ComplianceSummary: React.FC = ({}) => {
     });
 
     return baseFilters;
-  }, [filters, currentAgency.currentAgency]);
+  }, [filters, agencyFilters]);
 
   const allAttemptsUsedFilters = useMemo(() => {
     const baseFilters = structuredClone(filters);
@@ -252,7 +249,7 @@ export const ComplianceSummary: React.FC = ({}) => {
     }
 
     return baseFilters;
-  }, [filters, currentAgency.currentAgency]);
+  }, [filters, agencyFilters]);
 
   const summaryQuery = useSysUsersForComplianceSummaryQuery({
     variables: {
@@ -277,7 +274,7 @@ export const ComplianceSummary: React.FC = ({}) => {
 
       return true;
     });
-  }, [summaryQuery.data?.allAttemptsUsed, currentAgency.currentAgency]);
+  }, [summaryQuery.data?.allAttemptsUsed]);
 
   const cliniciansWithAllAssignmentsCompleted = useMemo(() => {
     return summaryQuery.data?.cliniciansWithCompletedAssignments.filter(
@@ -323,10 +320,7 @@ export const ComplianceSummary: React.FC = ({}) => {
         );
       }
     );
-  }, [
-    summaryQuery.data?.cliniciansWithCompletedAssignments,
-    currentAgency.currentAgency,
-  ]);
+  }, [summaryQuery.data?.cliniciansWithCompletedAssignments]);
 
   const renderTooltipContent = (tooltipCopy: TooltipCopys) => {
     return (

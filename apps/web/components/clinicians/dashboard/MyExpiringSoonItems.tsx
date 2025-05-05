@@ -15,14 +15,20 @@ export const MyExpiringSoonItems = () => {
       { status: { _neq: DirectusStatus.ARCHIVED } },
       {
         _or: [
-          {
-            status: {
-              _in: [CompetencyState.EXPIRED, CompetencyState.DUE_DATE_EXPIRED],
-            },
-          },
           { due_date: { _lte: thirtyDaysInFuture.toDateString() } },
           { expires_on: { _lte: thirtyDaysInFuture.toDateString() } },
         ],
+      },
+      {
+        status: {
+          _nin: [
+            CompetencyState.READ,
+            CompetencyState.SIGNED,
+            CompetencyState.COMPLETED,
+            CompetencyState.EXPIRED,
+            CompetencyState.DUE_DATE_EXPIRED,
+          ],
+        },
       },
     ],
   };
@@ -33,28 +39,12 @@ export const MyExpiringSoonItems = () => {
       modulesfilter: commonFilter,
       scfilter: commonFilter,
       policiesfilter: {
-        _and: [
-          { directus_users_id: { id: { _eq: "$CURRENT_USER" } } },
-          { assigned_on: { _null: true } },
-          {
-            _or: [
-              { due_date: { _lte: thirtyDaysInFuture.toDateString() } },
-              { expires_on: { _lte: thirtyDaysInFuture.toDateString() } },
-            ],
-          },
-        ],
+        ...commonFilter,
+        _and: [...commonFilter._and, { signed_on: { _null: true } }],
       },
       documentsfilter: {
-        _and: [
-          { directus_users_id: { id: { _eq: "$CURRENT_USER" } } },
-          { read: { _null: true } },
-          {
-            _or: [
-              { due_date: { _lte: thirtyDaysInFuture.toDateString() } },
-              { expires_on: { _lte: thirtyDaysInFuture.toDateString() } },
-            ],
-          },
-        ],
+        ...commonFilter,
+        _and: [...commonFilter._and, { read: { _null: true } }],
       },
     },
   });
@@ -136,6 +126,10 @@ export const MyExpiringSoonItems = () => {
       {loading ? (
         <div className="m-auto">
           <Spinner />
+        </div>
+      ) : items.length === 0 ? (
+        <div className="text-center text-gray-500">
+          <span>There&apos;s nothing expiring soon right now.</span>
         </div>
       ) : (
         <>

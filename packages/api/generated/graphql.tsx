@@ -16751,7 +16751,18 @@ export type UserCompetenciesQueryVariables = Exact<{
 
 export type UserCompetenciesQuery = { __typename?: 'Query', exams: Array<{ __typename?: 'junction_directus_users_exams', expires_on?: Date | null, allowed_attempts?: number | null, attempts_used?: number | null, assigned_on?: Date | null, due_date?: Date | null, status?: string | null, finished_on?: Date | null, cert_expiry_date?: Date | null, cert_code?: string | null, started_on?: Date | null, id: string, score?: number | null, import_cert_url?: string | null, import_report_url?: string | null, reassigned?: boolean | null, expiration_type?: string | null, score_history?: Object | null, exams_id?: { __typename?: 'exams', id: string, title?: string | null, import_is_shell?: boolean | null, import_ceu?: number | null, modality?: { __typename?: 'categories', title?: string | null } | null, exam_versions?: Array<{ __typename?: 'exam_versions', contact_hour?: string | null } | null> | null } | null, exam_versions_id?: { __typename?: 'exam_versions', id: string, title?: string | null, contact_hour?: string | null, expiration?: string | null } | null, agency?: { __typename?: 'agencies', id: string, name?: string | null } | null }>, policies: Array<{ __typename?: 'junction_directus_users_policies', id: string, assigned_on?: Date | null, expires_on?: Date | null, read?: Date | null, signed_on?: Date | null, due_date?: Date | null, status?: string | null, reassigned?: boolean | null, expiration_type?: string | null, policies_id?: { __typename?: 'policies', id: string, name?: string | null } | null, agency?: { __typename?: 'agencies', id: string, name?: string | null } | null }>, documents: Array<{ __typename?: 'junction_directus_users_documents', id: string, assigned_on?: Date | null, expires_on?: Date | null, read?: Date | null, due_date?: Date | null, status?: string | null, reassigned?: boolean | null, expiration_type?: string | null, documents_id?: { __typename?: 'documents', id: string, title?: string | null } | null, agency?: { __typename?: 'agencies', id: string, name?: string | null } | null }>, modules: Array<{ __typename?: 'junction_modules_definition_directus_users', id: string, assigned_on?: Date | null, finished_on?: Date | null, expires_on?: Date | null, allowed_attempts?: number | null, attempts_used?: number | null, due_date?: Date | null, status?: string | null, approved?: boolean | null, score?: number | null, import_cert_url?: string | null, import_report_url?: string | null, reassigned?: boolean | null, expiration_type?: string | null, modules_definition_id?: { __typename?: 'modules_definition', id: string, title?: string | null, import_is_shell?: boolean | null, import_ceu?: number | null, last_version?: { __typename?: 'modules_versions', contact_hour?: number | null } | null } | null, module_version?: { __typename?: 'modules_versions', contact_hour?: number | null } | null, agency?: { __typename?: 'agencies', id: string, name?: string | null } | null }>, skills_checklists: Array<{ __typename?: 'junction_sc_definitions_directus_users', id: string, assigned_on?: Date | null, due_date?: Date | null, expires_on?: Date | null, finished_on?: Date | null, status?: string | null, import_report_url?: string | null, reassigned?: boolean | null, expiration_type?: string | null, sc_definitions_id?: { __typename?: 'sc_definitions', import_is_shell?: boolean | null, id: string, title?: string | null } | null, agency?: { __typename?: 'agencies', id: string, name?: string | null } | null }> };
 
+export type UserCompetenciesHshAdminViewQueryVariables = Exact<{
+  user: Scalars['String']['input'];
+  agencies: Array<InputMaybe<Scalars['String']['input']>> | InputMaybe<Scalars['String']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+}>;
+
+
+export type UserCompetenciesHshAdminViewQuery = { __typename?: 'Query', exams: Array<{ __typename?: 'junction_directus_users_exams', expires_on?: Date | null, allowed_attempts?: number | null, attempts_used?: number | null, assigned_on?: Date | null, due_date?: Date | null, status?: string | null, finished_on?: Date | null, cert_expiry_date?: Date | null, cert_code?: string | null, started_on?: Date | null, id: string, score?: number | null, import_cert_url?: string | null, import_report_url?: string | null, reassigned?: boolean | null, expiration_type?: string | null, score_history?: Object | null, exams_id?: { __typename?: 'exams', id: string, title?: string | null, import_is_shell?: boolean | null, import_ceu?: number | null, modality?: { __typename?: 'categories', title?: string | null } | null, exam_versions?: Array<{ __typename?: 'exam_versions', contact_hour?: string | null } | null> | null } | null, exam_versions_id?: { __typename?: 'exam_versions', id: string, title?: string | null, contact_hour?: string | null, expiration?: string | null } | null, agency?: { __typename?: 'agencies', id: string, name?: string | null } | null }>, policies: Array<{ __typename?: 'junction_directus_users_policies', id: string, assigned_on?: Date | null, expires_on?: Date | null, read?: Date | null, signed_on?: Date | null, due_date?: Date | null, status?: string | null, reassigned?: boolean | null, expiration_type?: string | null, policies_id?: { __typename?: 'policies', id: string, name?: string | null } | null, agency?: { __typename?: 'agencies', id: string, name?: string | null } | null }>, documents: Array<{ __typename?: 'junction_directus_users_documents', id: string, assigned_on?: Date | null, expires_on?: Date | null, read?: Date | null, due_date?: Date | null, status?: string | null, reassigned?: boolean | null, expiration_type?: string | null, documents_id?: { __typename?: 'documents', id: string, title?: string | null } | null, agency?: { __typename?: 'agencies', id: string, name?: string | null } | null }>, modules: Array<{ __typename?: 'junction_modules_definition_directus_users', id: string, assigned_on?: Date | null, finished_on?: Date | null, expires_on?: Date | null, allowed_attempts?: number | null, attempts_used?: number | null, due_date?: Date | null, status?: string | null, approved?: boolean | null, score?: number | null, import_cert_url?: string | null, import_report_url?: string | null, reassigned?: boolean | null, expiration_type?: string | null, modules_definition_id?: { __typename?: 'modules_definition', id: string, title?: string | null, import_is_shell?: boolean | null, import_ceu?: number | null, last_version?: { __typename?: 'modules_versions', contact_hour?: number | null } | null } | null, module_version?: { __typename?: 'modules_versions', contact_hour?: number | null } | null, agency?: { __typename?: 'agencies', id: string, name?: string | null } | null }>, skills_checklists: Array<{ __typename?: 'junction_sc_definitions_directus_users', id: string, assigned_on?: Date | null, due_date?: Date | null, expires_on?: Date | null, finished_on?: Date | null, status?: string | null, import_report_url?: string | null, reassigned?: boolean | null, expiration_type?: string | null, sc_definitions_id?: { __typename?: 'sc_definitions', import_is_shell?: boolean | null, id: string, title?: string | null } | null, agency?: { __typename?: 'agencies', id: string, name?: string | null } | null }> };
+
 export type ExamFragment = { __typename?: 'exams', id: string, status?: string | null, title?: string | null, date_created?: Date | null, directus_users?: Array<{ __typename?: 'junction_directus_users_exams', id: string, allowed_attempts?: number | null } | null> | null, agencies?: Array<{ __typename?: 'junction_exams_agencies', agencies_id?: { __typename?: 'agencies', id: string, name?: string | null } | null } | null> | null, modality?: { __typename?: 'categories', id: string, title?: string | null } | null, specialties?: Array<{ __typename?: 'junction_exams_categories_specialties', categories_id?: { __typename?: 'categories', id: string, title?: string | null } | null } | null> | null, subspecialties?: Array<{ __typename?: 'junction_exams_categories_subspecialties', categories_id?: { __typename?: 'categories', id: string, title?: string | null } | null } | null> | null, exam_versions?: Array<{ __typename?: 'exam_versions', id: string, title?: string | null, allowed_attempts?: number | null, description?: string | null, fail_message?: string | null, introduction?: string | null, passing_message?: string | null, passing_score?: number | null, questions_to_give?: number | null, shuffle_questions?: boolean | null, expiration?: string | null, is_proctoring?: boolean | null } | null> | null };
+
+export type ExamAssignmentFragment = { __typename?: 'exams', id: string, status?: string | null, title?: string | null, date_created?: Date | null, agencies?: Array<{ __typename?: 'junction_exams_agencies', agencies_id?: { __typename?: 'agencies', id: string, name?: string | null } | null } | null> | null, modality?: { __typename?: 'categories', id: string, title?: string | null } | null, specialties?: Array<{ __typename?: 'junction_exams_categories_specialties', categories_id?: { __typename?: 'categories', id: string, title?: string | null } | null } | null> | null, subspecialties?: Array<{ __typename?: 'junction_exams_categories_subspecialties', categories_id?: { __typename?: 'categories', id: string, title?: string | null } | null } | null> | null, exam_versions?: Array<{ __typename?: 'exam_versions', id: string, title?: string | null, allowed_attempts?: number | null, description?: string | null, fail_message?: string | null, introduction?: string | null, passing_message?: string | null, passing_score?: number | null, questions_to_give?: number | null, shuffle_questions?: boolean | null, expiration?: string | null, is_proctoring?: boolean | null } | null> | null };
 
 export type AllExamsForListFragment = { __typename?: 'exams', id: string, status?: string | null, title?: string | null, date_created?: Date | null, agencies?: Array<{ __typename?: 'junction_exams_agencies', agencies_id?: { __typename?: 'agencies', id: string, name?: string | null } | null } | null> | null, modality?: { __typename?: 'categories', id: string, title?: string | null } | null, specialties?: Array<{ __typename?: 'junction_exams_categories_specialties', categories_id?: { __typename?: 'categories', id: string, title?: string | null } | null } | null> | null, subspecialties?: Array<{ __typename?: 'junction_exams_categories_subspecialties', categories_id?: { __typename?: 'categories', id: string, title?: string | null } | null } | null> | null, exam_versions?: Array<{ __typename?: 'exam_versions', id: string, title?: string | null } | null> | null };
 
@@ -16764,7 +16775,7 @@ export type GetAllExamsForAssignCompetencyQueryVariables = Exact<{
 }>;
 
 
-export type GetAllExamsForAssignCompetencyQuery = { __typename?: 'Query', exams: Array<{ __typename?: 'exams', id: string, status?: string | null, title?: string | null, date_created?: Date | null, directus_users?: Array<{ __typename?: 'junction_directus_users_exams', id: string, allowed_attempts?: number | null } | null> | null, agencies?: Array<{ __typename?: 'junction_exams_agencies', agencies_id?: { __typename?: 'agencies', id: string, name?: string | null } | null } | null> | null, modality?: { __typename?: 'categories', id: string, title?: string | null } | null, specialties?: Array<{ __typename?: 'junction_exams_categories_specialties', categories_id?: { __typename?: 'categories', id: string, title?: string | null } | null } | null> | null, subspecialties?: Array<{ __typename?: 'junction_exams_categories_subspecialties', categories_id?: { __typename?: 'categories', id: string, title?: string | null } | null } | null> | null, exam_versions?: Array<{ __typename?: 'exam_versions', id: string, title?: string | null, allowed_attempts?: number | null, description?: string | null, fail_message?: string | null, introduction?: string | null, passing_message?: string | null, passing_score?: number | null, questions_to_give?: number | null, shuffle_questions?: boolean | null, expiration?: string | null, is_proctoring?: boolean | null } | null> | null }> };
+export type GetAllExamsForAssignCompetencyQuery = { __typename?: 'Query', exams: Array<{ __typename?: 'exams', id: string, status?: string | null, title?: string | null, date_created?: Date | null, agencies?: Array<{ __typename?: 'junction_exams_agencies', agencies_id?: { __typename?: 'agencies', id: string, name?: string | null } | null } | null> | null, modality?: { __typename?: 'categories', id: string, title?: string | null } | null, specialties?: Array<{ __typename?: 'junction_exams_categories_specialties', categories_id?: { __typename?: 'categories', id: string, title?: string | null } | null } | null> | null, subspecialties?: Array<{ __typename?: 'junction_exams_categories_subspecialties', categories_id?: { __typename?: 'categories', id: string, title?: string | null } | null } | null> | null, exam_versions?: Array<{ __typename?: 'exam_versions', id: string, title?: string | null, allowed_attempts?: number | null, description?: string | null, fail_message?: string | null, introduction?: string | null, passing_message?: string | null, passing_score?: number | null, questions_to_give?: number | null, shuffle_questions?: boolean | null, expiration?: string | null, is_proctoring?: boolean | null } | null> | null }> };
 
 export type GetAllExamsForReportsFilterQueryVariables = Exact<{
   search?: InputMaybe<Scalars['String']['input']>;
@@ -16832,9 +16843,11 @@ export type UpdateExamVersionMutationVariables = Exact<{
 
 export type UpdateExamVersionMutation = { __typename?: 'Mutation', update_exam_versions_item?: { __typename?: 'exam_versions', id: string } | null };
 
-export type UserExamReportsFragment = { __typename?: 'junction_directus_users_exams', id: string, status?: string | null, score?: number | null, finished_on?: Date | null, started_on?: Date | null, expires_on?: Date | null, due_date?: Date | null, allowed_attempts?: number | null, attempts_used?: number | null, import_report_url?: string | null, import_cert_url?: string | null, expiration_type?: string | null, directus_users_id?: { __typename?: 'directus_users', id: string, first_name?: string | null, last_name?: string | null, email?: string | null } | null, exams_id?: { __typename?: 'exams', id: string, title?: string | null, import_ceu?: number | null, exam_versions?: Array<{ __typename?: 'exam_versions', id: string, title?: string | null } | null> | null } | null, exam_versions_id?: { __typename?: 'exam_versions', expiration?: string | null, contact_hour?: string | null } | null, agency?: { __typename?: 'agencies', date_created?: Date | null, name?: string | null, directus_users?: Array<{ __typename?: 'junction_directus_users_agencies', employee_number?: string | null } | null> | null } | null };
+export type UserExamReportsFragment = { __typename?: 'junction_directus_users_exams', id: string, status?: string | null, score?: number | null, finished_on?: Date | null, started_on?: Date | null, expires_on?: Date | null, due_date?: Date | null, allowed_attempts?: number | null, attempts_used?: number | null, import_report_url?: string | null, import_cert_url?: string | null, expiration_type?: string | null, directus_users_id?: { __typename?: 'directus_users', id: string, first_name?: string | null, last_name?: string | null, email?: string | null, agencies?: Array<{ __typename?: 'junction_directus_users_agencies', employee_number?: string | null, agencies_id?: { __typename?: 'agencies', id: string, name?: string | null } | null, departments?: Array<{ __typename?: 'junction_directus_users_agencies_departments', departments_id?: { __typename?: 'departments', id: string, name?: string | null } | null } | null> | null } | null> | null } | null, exams_id?: { __typename?: 'exams', id: string, title?: string | null, import_ceu?: number | null, exam_versions?: Array<{ __typename?: 'exam_versions', id: string, title?: string | null } | null> | null } | null, exam_versions_id?: { __typename?: 'exam_versions', expiration?: string | null, contact_hour?: string | null } | null, agency?: { __typename?: 'agencies', date_created?: Date | null, name?: string | null } | null };
 
 export type UserExamQuestionsFragment = { __typename?: 'junction_directus_users_exams', id: string, status?: string | null, assigned_on?: Date | null, started_on?: Date | null, finished_on?: Date | null, due_date?: Date | null, allowed_attempts?: number | null, attempts_used?: number | null, question_versions_list?: Object | null, attempt_due?: Date | null, exams_id?: { __typename?: 'exams', id: string, title?: string | null, import_is_shell?: boolean | null, modality?: { __typename?: 'categories', id: string, title?: string | null } | null, exam_versions?: Array<{ __typename?: 'exam_versions', questions_to_give?: number | null, shuffle_questions?: boolean | null, id: string, title?: string | null, description?: string | null, passing_score?: number | null, is_proctoring?: boolean | null, questions?: Array<{ __typename?: 'junction_exam_versions_questions', id: string } | null> | null, outline?: { __typename?: 'directus_files', id: string } | null } | null> | null } | null };
+
+export type UserExamQuestionsDetailsFragment = { __typename?: 'junction_directus_users_exams', id: string, attempt_due?: Date | null, started_on?: Date | null, question_versions_list?: Object | null, exams_id?: { __typename?: 'exams', id: string, modality?: { __typename?: 'categories', title?: string | null } | null, exam_versions?: Array<{ __typename?: 'exam_versions', title?: string | null } | null> | null } | null };
 
 export type GetUserExamQueryVariables = Exact<{
   filter?: InputMaybe<Junction_Directus_Users_Exams_Filter>;
@@ -16842,6 +16855,13 @@ export type GetUserExamQueryVariables = Exact<{
 
 
 export type GetUserExamQuery = { __typename?: 'Query', junction_directus_users_exams: Array<{ __typename?: 'junction_directus_users_exams', id: string, status?: string | null, assigned_on?: Date | null, started_on?: Date | null, finished_on?: Date | null, due_date?: Date | null, allowed_attempts?: number | null, attempts_used?: number | null, question_versions_list?: Object | null, attempt_due?: Date | null, exams_id?: { __typename?: 'exams', id: string, title?: string | null, import_is_shell?: boolean | null, modality?: { __typename?: 'categories', id: string, title?: string | null } | null, exam_versions?: Array<{ __typename?: 'exam_versions', questions_to_give?: number | null, shuffle_questions?: boolean | null, id: string, title?: string | null, description?: string | null, passing_score?: number | null, is_proctoring?: boolean | null, questions?: Array<{ __typename?: 'junction_exam_versions_questions', id: string } | null> | null, outline?: { __typename?: 'directus_files', id: string } | null } | null> | null } | null }> };
+
+export type GetUserExamDetailsQueryVariables = Exact<{
+  filter?: InputMaybe<Junction_Directus_Users_Exams_Filter>;
+}>;
+
+
+export type GetUserExamDetailsQuery = { __typename?: 'Query', junction_directus_users_exams: Array<{ __typename?: 'junction_directus_users_exams', id: string, attempt_due?: Date | null, started_on?: Date | null, question_versions_list?: Object | null, exams_id?: { __typename?: 'exams', id: string, modality?: { __typename?: 'categories', title?: string | null } | null, exam_versions?: Array<{ __typename?: 'exam_versions', title?: string | null } | null> | null } | null }> };
 
 export type GetAllUserExamQueryVariables = Exact<{
   limit?: InputMaybe<Scalars['Int']['input']>;
@@ -16851,7 +16871,7 @@ export type GetAllUserExamQueryVariables = Exact<{
 }>;
 
 
-export type GetAllUserExamQuery = { __typename?: 'Query', junction_directus_users_exams: Array<{ __typename?: 'junction_directus_users_exams', id: string, status?: string | null, score?: number | null, finished_on?: Date | null, started_on?: Date | null, expires_on?: Date | null, due_date?: Date | null, allowed_attempts?: number | null, attempts_used?: number | null, import_report_url?: string | null, import_cert_url?: string | null, expiration_type?: string | null, directus_users_id?: { __typename?: 'directus_users', id: string, first_name?: string | null, last_name?: string | null, email?: string | null } | null, exams_id?: { __typename?: 'exams', id: string, title?: string | null, import_ceu?: number | null, exam_versions?: Array<{ __typename?: 'exam_versions', id: string, title?: string | null } | null> | null } | null, exam_versions_id?: { __typename?: 'exam_versions', expiration?: string | null, contact_hour?: string | null } | null, agency?: { __typename?: 'agencies', date_created?: Date | null, name?: string | null, directus_users?: Array<{ __typename?: 'junction_directus_users_agencies', employee_number?: string | null } | null> | null } | null }>, junction_directus_users_exams_aggregated: Array<{ __typename?: 'junction_directus_users_exams_aggregated', count?: { __typename?: 'junction_directus_users_exams_aggregated_count', id?: number | null } | null }> };
+export type GetAllUserExamQuery = { __typename?: 'Query', junction_directus_users_exams: Array<{ __typename?: 'junction_directus_users_exams', id: string, status?: string | null, score?: number | null, finished_on?: Date | null, started_on?: Date | null, expires_on?: Date | null, due_date?: Date | null, allowed_attempts?: number | null, attempts_used?: number | null, import_report_url?: string | null, import_cert_url?: string | null, expiration_type?: string | null, directus_users_id?: { __typename?: 'directus_users', id: string, first_name?: string | null, last_name?: string | null, email?: string | null, agencies?: Array<{ __typename?: 'junction_directus_users_agencies', employee_number?: string | null, agencies_id?: { __typename?: 'agencies', id: string, name?: string | null } | null, departments?: Array<{ __typename?: 'junction_directus_users_agencies_departments', departments_id?: { __typename?: 'departments', id: string, name?: string | null } | null } | null> | null } | null> | null } | null, exams_id?: { __typename?: 'exams', id: string, title?: string | null, import_ceu?: number | null, exam_versions?: Array<{ __typename?: 'exam_versions', id: string, title?: string | null } | null> | null } | null, exam_versions_id?: { __typename?: 'exam_versions', expiration?: string | null, contact_hour?: string | null } | null, agency?: { __typename?: 'agencies', date_created?: Date | null, name?: string | null } | null }>, junction_directus_users_exams_aggregated: Array<{ __typename?: 'junction_directus_users_exams_aggregated', count?: { __typename?: 'junction_directus_users_exams_aggregated_count', id?: number | null } | null }> };
 
 export type OverviewExamsFragment = { __typename?: 'exams', id: string, title?: string | null, agencies?: Array<{ __typename?: 'junction_exams_agencies', agencies_id?: { __typename?: 'agencies', name?: string | null } | null } | null> | null, directus_users?: Array<{ __typename?: 'junction_directus_users_exams', allowed_attempts?: number | null, attempts_used?: number | null, score?: number | null, due_date?: Date | null, finished_on?: Date | null, started_on?: Date | null, status?: string | null, agency?: { __typename?: 'agencies', id: string } | null } | null> | null, exam_versions?: Array<{ __typename?: 'exam_versions', allowed_attempts?: number | null, passing_score?: number | null } | null> | null };
 
@@ -16987,6 +17007,14 @@ export type GetUserExamAttemptQueryVariables = Exact<{
 
 
 export type GetUserExamAttemptQuery = { __typename?: 'Query', junction_directus_users_exams: Array<{ __typename?: 'junction_directus_users_exams', id: string, status?: string | null, allowed_attempts?: number | null, attempts_used?: number | null, assigned_on?: Date | null, started_on?: Date | null, score_history?: Object | null, exams_id?: { __typename?: 'exams', id: string, title?: string | null, modality?: { __typename?: 'categories', title?: string | null } | null } | null, exam_versions_id?: { __typename?: 'exam_versions', passing_score?: number | null, fail_message?: string | null, passing_message?: string | null, description?: string | null, contact_hour?: string | null, outline?: { __typename?: 'directus_files', id: string } | null } | null }> };
+
+export type GetUserExamAttemptForResultQueryVariables = Exact<{
+  user: Scalars['String']['input'];
+  assignment_id: Scalars['GraphQLStringOrFloat']['input'];
+}>;
+
+
+export type GetUserExamAttemptForResultQuery = { __typename?: 'Query', junction_directus_users_exams: Array<{ __typename?: 'junction_directus_users_exams', id: string, attempts_used?: number | null, status?: string | null, allowed_attempts?: number | null, exams_id?: { __typename?: 'exams', id: string, title?: string | null, modality?: { __typename?: 'categories', title?: string | null } | null } | null, exam_versions_id?: { __typename?: 'exam_versions', passing_score?: number | null, passing_message?: string | null, fail_message?: string | null, outline?: { __typename?: 'directus_files', id: string } | null } | null }> };
 
 export type GetUserExamsResultsByAttemptQueryVariables = Exact<{
   assignment_id: Scalars['GraphQLStringOrFloat']['input'];
@@ -18997,6 +19025,50 @@ export const CompetenciesModuleFragmentDoc = gql`
   }
 }
     `;
+export const ExamAssignmentFragmentDoc = gql`
+    fragment ExamAssignment on exams {
+  id
+  status
+  title
+  date_created
+  agencies {
+    agencies_id {
+      id
+      name
+    }
+  }
+  modality {
+    id
+    title
+  }
+  specialties {
+    categories_id {
+      id
+      title
+    }
+  }
+  subspecialties {
+    categories_id {
+      id
+      title
+    }
+  }
+  exam_versions(sort: "-date_created", limit: 1) {
+    id
+    title
+    allowed_attempts
+    description
+    fail_message
+    introduction
+    passing_message
+    passing_score
+    questions_to_give
+    shuffle_questions
+    expiration
+    is_proctoring
+  }
+}
+    `;
 export const AllExamsForListFragmentDoc = gql`
     fragment AllExamsForList on exams {
   id
@@ -19050,6 +19122,19 @@ export const UserExamReportsFragmentDoc = gql`
     first_name
     last_name
     email
+    agencies {
+      agencies_id {
+        id
+        name
+      }
+      employee_number
+      departments {
+        departments_id {
+          id
+          name
+        }
+      }
+    }
   }
   exams_id {
     id
@@ -19067,9 +19152,6 @@ export const UserExamReportsFragmentDoc = gql`
   agency {
     date_created
     name
-    directus_users {
-      employee_number
-    }
   }
 }
     `;
@@ -19107,6 +19189,23 @@ export const UserExamQuestionsFragmentDoc = gql`
       outline {
         id
       }
+    }
+  }
+}
+    `;
+export const UserExamQuestionsDetailsFragmentDoc = gql`
+    fragment UserExamQuestionsDetails on junction_directus_users_exams {
+  id
+  attempt_due
+  started_on
+  question_versions_list
+  exams_id {
+    modality {
+      title
+    }
+    id
+    exam_versions(sort: "-date_created", limit: 1) {
+      title
     }
   }
 }
@@ -19877,7 +19976,7 @@ export const SysUsersForComplianceSummaryDocument = gql`
       }
     }
     email
-    exams(filter: {status: {_eq: "FAILED"}}) {
+    exams(filter: {status: {_in: ["FAILED", "COMPLETED"]}}) {
       id
       status
       allowed_attempts
@@ -19893,7 +19992,7 @@ export const SysUsersForComplianceSummaryDocument = gql`
         id
       }
     }
-    modules(filter: {status: {_eq: "FINISHED"}, approved: {_eq: false}}) {
+    modules(filter: {status: {_eq: "FINISHED"}}) {
       id
       status
       allowed_attempts
@@ -21283,6 +21382,124 @@ export function useUserCompetenciesLazyQuery(baseOptions?: Apollo.LazyQueryHookO
 export type UserCompetenciesQueryHookResult = ReturnType<typeof useUserCompetenciesQuery>;
 export type UserCompetenciesLazyQueryHookResult = ReturnType<typeof useUserCompetenciesLazyQuery>;
 export type UserCompetenciesQueryResult = Apollo.QueryResult<UserCompetenciesQuery, UserCompetenciesQueryVariables>;
+export const UserCompetenciesHshAdminViewDocument = gql`
+    query UserCompetenciesHSHAdminView($user: String!, $agencies: [String]!, $offset: Int) {
+  exams: junction_directus_users_exams(
+    filter: {_and: [{directus_users_id: {id: {_eq: $user}}}, {agency: {id: {_in: $agencies}}}]}
+    offset: $offset
+    sort: "-assigned_on"
+  ) {
+    ...CompetenciesExam
+  }
+  policies: junction_directus_users_policies(
+    filter: {_and: [{directus_users_id: {id: {_eq: $user}}}, {agency: {id: {_in: $agencies}}}]}
+    sort: "-assigned_on"
+    offset: $offset
+  ) {
+    id
+    assigned_on
+    expires_on
+    read
+    signed_on
+    due_date
+    status
+    reassigned
+    expiration_type
+    policies_id {
+      id
+      name
+    }
+    agency {
+      id
+      name
+    }
+  }
+  documents: junction_directus_users_documents(
+    filter: {_and: [{directus_users_id: {id: {_eq: $user}}}, {agency: {id: {_in: $agencies}}}]}
+    sort: "-assigned_on"
+    offset: $offset
+  ) {
+    id
+    assigned_on
+    expires_on
+    read
+    due_date
+    status
+    reassigned
+    expiration_type
+    documents_id {
+      id
+      title
+    }
+    agency {
+      id
+      name
+    }
+  }
+  modules: junction_modules_definition_directus_users(
+    filter: {_and: [{directus_users_id: {id: {_eq: $user}}}, {agency: {id: {_in: $agencies}}}]}
+    sort: "-assigned_on"
+    offset: $offset
+  ) {
+    ...CompetenciesModule
+  }
+  skills_checklists: junction_sc_definitions_directus_users(
+    filter: {_and: [{directus_users_id: {id: {_eq: $user}}}, {agency: {id: {_in: $agencies}}}]}
+    sort: "-assigned_on"
+    offset: $offset
+  ) {
+    id
+    assigned_on
+    due_date
+    expires_on
+    finished_on
+    status
+    import_report_url
+    reassigned
+    expiration_type
+    sc_definitions_id {
+      import_is_shell
+      id
+      title
+    }
+    agency {
+      id
+      name
+    }
+  }
+}
+    ${CompetenciesExamFragmentDoc}
+${CompetenciesModuleFragmentDoc}`;
+
+/**
+ * __useUserCompetenciesHshAdminViewQuery__
+ *
+ * To run a query within a React component, call `useUserCompetenciesHshAdminViewQuery` and pass it any options that fit your needs.
+ * When your component renders, `useUserCompetenciesHshAdminViewQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useUserCompetenciesHshAdminViewQuery({
+ *   variables: {
+ *      user: // value for 'user'
+ *      agencies: // value for 'agencies'
+ *      offset: // value for 'offset'
+ *   },
+ * });
+ */
+export function useUserCompetenciesHshAdminViewQuery(baseOptions: Apollo.QueryHookOptions<UserCompetenciesHshAdminViewQuery, UserCompetenciesHshAdminViewQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<UserCompetenciesHshAdminViewQuery, UserCompetenciesHshAdminViewQueryVariables>(UserCompetenciesHshAdminViewDocument, options);
+      }
+export function useUserCompetenciesHshAdminViewLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<UserCompetenciesHshAdminViewQuery, UserCompetenciesHshAdminViewQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<UserCompetenciesHshAdminViewQuery, UserCompetenciesHshAdminViewQueryVariables>(UserCompetenciesHshAdminViewDocument, options);
+        }
+export type UserCompetenciesHshAdminViewQueryHookResult = ReturnType<typeof useUserCompetenciesHshAdminViewQuery>;
+export type UserCompetenciesHshAdminViewLazyQueryHookResult = ReturnType<typeof useUserCompetenciesHshAdminViewLazyQuery>;
+export type UserCompetenciesHshAdminViewQueryResult = Apollo.QueryResult<UserCompetenciesHshAdminViewQuery, UserCompetenciesHshAdminViewQueryVariables>;
 export const GetAllExamsForAssignCompetencyDocument = gql`
     query getAllExamsForAssignCompetency($offset: Int, $limit: Int, $sort: [String], $search: String, $filter: exams_filter) {
   exams(
@@ -21292,10 +21509,10 @@ export const GetAllExamsForAssignCompetencyDocument = gql`
     sort: $sort
     search: $search
   ) {
-    ...Exam
+    ...ExamAssignment
   }
 }
-    ${ExamFragmentDoc}`;
+    ${ExamAssignmentFragmentDoc}`;
 
 /**
  * __useGetAllExamsForAssignCompetencyQuery__
@@ -21711,6 +21928,41 @@ export function useGetUserExamLazyQuery(baseOptions?: Apollo.LazyQueryHookOption
 export type GetUserExamQueryHookResult = ReturnType<typeof useGetUserExamQuery>;
 export type GetUserExamLazyQueryHookResult = ReturnType<typeof useGetUserExamLazyQuery>;
 export type GetUserExamQueryResult = Apollo.QueryResult<GetUserExamQuery, GetUserExamQueryVariables>;
+export const GetUserExamDetailsDocument = gql`
+    query getUserExamDetails($filter: junction_directus_users_exams_filter) {
+  junction_directus_users_exams(filter: $filter) {
+    ...UserExamQuestionsDetails
+  }
+}
+    ${UserExamQuestionsDetailsFragmentDoc}`;
+
+/**
+ * __useGetUserExamDetailsQuery__
+ *
+ * To run a query within a React component, call `useGetUserExamDetailsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetUserExamDetailsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetUserExamDetailsQuery({
+ *   variables: {
+ *      filter: // value for 'filter'
+ *   },
+ * });
+ */
+export function useGetUserExamDetailsQuery(baseOptions?: Apollo.QueryHookOptions<GetUserExamDetailsQuery, GetUserExamDetailsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetUserExamDetailsQuery, GetUserExamDetailsQueryVariables>(GetUserExamDetailsDocument, options);
+      }
+export function useGetUserExamDetailsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetUserExamDetailsQuery, GetUserExamDetailsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetUserExamDetailsQuery, GetUserExamDetailsQueryVariables>(GetUserExamDetailsDocument, options);
+        }
+export type GetUserExamDetailsQueryHookResult = ReturnType<typeof useGetUserExamDetailsQuery>;
+export type GetUserExamDetailsLazyQueryHookResult = ReturnType<typeof useGetUserExamDetailsLazyQuery>;
+export type GetUserExamDetailsQueryResult = Apollo.QueryResult<GetUserExamDetailsQuery, GetUserExamDetailsQueryVariables>;
 export const GetAllUserExamDocument = gql`
     query getAllUserExam($limit: Int, $offset: Int, $sort: [String], $filter: junction_directus_users_exams_filter) {
   junction_directus_users_exams(
@@ -22409,6 +22661,64 @@ export function useGetUserExamAttemptLazyQuery(baseOptions?: Apollo.LazyQueryHoo
 export type GetUserExamAttemptQueryHookResult = ReturnType<typeof useGetUserExamAttemptQuery>;
 export type GetUserExamAttemptLazyQueryHookResult = ReturnType<typeof useGetUserExamAttemptLazyQuery>;
 export type GetUserExamAttemptQueryResult = Apollo.QueryResult<GetUserExamAttemptQuery, GetUserExamAttemptQueryVariables>;
+export const GetUserExamAttemptForResultDocument = gql`
+    query getUserExamAttemptForResult($user: String!, $assignment_id: GraphQLStringOrFloat!) {
+  junction_directus_users_exams(
+    filter: {id: {_eq: $assignment_id}}
+    sort: "-assigned_on"
+    limit: 1
+  ) {
+    id
+    attempts_used
+    status
+    allowed_attempts
+    exams_id {
+      id
+      title
+      modality {
+        title
+      }
+    }
+    exam_versions_id {
+      passing_score
+      passing_message
+      fail_message
+      outline {
+        id
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useGetUserExamAttemptForResultQuery__
+ *
+ * To run a query within a React component, call `useGetUserExamAttemptForResultQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetUserExamAttemptForResultQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetUserExamAttemptForResultQuery({
+ *   variables: {
+ *      user: // value for 'user'
+ *      assignment_id: // value for 'assignment_id'
+ *   },
+ * });
+ */
+export function useGetUserExamAttemptForResultQuery(baseOptions: Apollo.QueryHookOptions<GetUserExamAttemptForResultQuery, GetUserExamAttemptForResultQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetUserExamAttemptForResultQuery, GetUserExamAttemptForResultQueryVariables>(GetUserExamAttemptForResultDocument, options);
+      }
+export function useGetUserExamAttemptForResultLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetUserExamAttemptForResultQuery, GetUserExamAttemptForResultQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetUserExamAttemptForResultQuery, GetUserExamAttemptForResultQueryVariables>(GetUserExamAttemptForResultDocument, options);
+        }
+export type GetUserExamAttemptForResultQueryHookResult = ReturnType<typeof useGetUserExamAttemptForResultQuery>;
+export type GetUserExamAttemptForResultLazyQueryHookResult = ReturnType<typeof useGetUserExamAttemptForResultLazyQuery>;
+export type GetUserExamAttemptForResultQueryResult = Apollo.QueryResult<GetUserExamAttemptForResultQuery, GetUserExamAttemptForResultQueryVariables>;
 export const GetUserExamsResultsByAttemptDocument = gql`
     query getUserExamsResultsByAttempt($assignment_id: GraphQLStringOrFloat!, $exam_id: String!, $attempt: GraphQLStringOrFloat!) {
   exam_results(
@@ -27639,7 +27949,7 @@ export type GetClinicianDashboardAnalyticsQueryResult = Apollo.QueryResult<GetCl
 export const GetClinicianDashboardCompetenciesDocument = gql`
     query GetClinicianDashboardCompetencies {
   total_exams: junction_directus_users_exams_aggregated(
-    filter: {_and: [{directus_users_id: {id: {_eq: "$CURRENT_USER"}}}, {status: {_in: ["NOT_STARTED", "IN_PROGRESS", "FAILED", "EXPIRED", "DUE_DATE_EXPIRED", "COMPLETED", "FAILED_TIMED_OUT"]}}, {agency: {_and: [{directus_users: {status: {_eq: "active"}}}, {directus_users: {directus_users_id: {id: {_eq: "$CURRENT_USER"}}}}]}}]}
+    filter: {_and: [{directus_users_id: {id: {_eq: "$CURRENT_USER"}}}, {status: {_in: ["NOT_STARTED", "IN_PROGRESS", "FAILED", "EXPIRED", "DUE_DATE_EXPIRED", "COMPLETED"]}}, {agency: {_and: [{directus_users: {status: {_eq: "active"}}}, {directus_users: {directus_users_id: {id: {_eq: "$CURRENT_USER"}}}}]}}]}
   ) {
     count {
       id

@@ -35,7 +35,7 @@ const IntegrityAdvocate: React.FC<IntegrityAdvocateProps> = (props) => {
     }
 
     const callbackUrl = new URL(
-      "/api/v1/integrity-advocate/callback",
+      "/cms/integrity-advocate/callback",
       window.location.origin
     );
     callbackUrl.searchParams.set("agency_id", currentAgency.id);

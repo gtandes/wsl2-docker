@@ -1,23 +1,6 @@
 import { CompetencyState, CompetencyType, DirectusStatus } from "types";
-import { DBService } from "../../common/services";
 
-const generalFilter = {
-  _and: [
-    { due_date: { _lte: "$NOW" } },
-    {
-      status: {
-        _nin: [
-          CompetencyState.EXPIRED,
-          CompetencyState.DUE_DATE_EXPIRED,
-          DirectusStatus.ARCHIVED,
-          CompetencyState.COMPLETED,
-          CompetencyState.FINISHED,
-          CompetencyState.FAILED,
-        ],
-      },
-    },
-  ],
-};
+import { DBService } from "../../common/services";
 
 const processUpdates = async (
   service: any,
@@ -27,6 +10,24 @@ const processUpdates = async (
   logger: any,
 ) => {
   try {
+    const generalFilter = {
+      _and: [
+        { due_date: { _lte: "$NOW" } },
+        {
+          status: {
+            _nin: [
+              CompetencyState.EXPIRED,
+              CompetencyState.DUE_DATE_EXPIRED,
+              DirectusStatus.ARCHIVED,
+              CompetencyState.COMPLETED,
+              CompetencyState.FINISHED,
+              CompetencyState.FAILED,
+            ],
+          },
+        },
+      ],
+    };
+
     const filter = filterExtension
       ? { ...generalFilter, _and: [...generalFilter._and, filterExtension] }
       : generalFilter;

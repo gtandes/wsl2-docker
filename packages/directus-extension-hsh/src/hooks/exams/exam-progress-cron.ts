@@ -50,7 +50,7 @@ export default defineHook(({ schedule }, { services, database, logger, getSchema
         const totalCorrectAnswers = correct_answers.length;
         const scorePercentage = Math.ceil((totalCorrectAnswers / assignment.question_versions_list.length) * 100);
 
-        const attemptNextState = hasAttemptsLeft ? CompetencyState.IN_PROGRESS : CompetencyState.FAILED_TIMED_OUT;
+        const attemptNextState = hasAttemptsLeft ? CompetencyState.IN_PROGRESS : CompetencyState.FAILED;
 
         const isProctored = assignment.exam_versions_id.is_proctoring && assignment.agency.ia_enable;
 

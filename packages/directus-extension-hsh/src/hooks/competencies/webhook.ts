@@ -550,7 +550,7 @@ export const moduleHook = async (
               attempt_count: attempts_used,
               started_on,
               finished_on: new Date(),
-              status: assignmentStatus === CompetencyState.FINISHED ? "passed" : "failed",
+              status: score >= 80 ? "passed" : "failed",
               score: score,
             },
           },

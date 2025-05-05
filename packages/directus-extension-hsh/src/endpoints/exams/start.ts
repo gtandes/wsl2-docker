@@ -5,8 +5,55 @@ import { ExamAssignment } from "./types";
 import { body, validationResult } from "express-validator";
 import { DBService } from "../../common/services";
 import { CompetencyState } from "types";
+import crypto from "crypto";
 
 const LOG_PREFIX = "EXAM START";
+const ENCRYPTION_KEY = crypto.randomBytes(32);
+const INI_VECTOR = crypto.randomBytes(16);
+
+interface Answer {
+  id: string;
+  sort: number;
+  answer_text: string;
+}
+
+interface Question {
+  question_text: string;
+  answers: Answer[];
+  image_id?: string;
+  is_answered?: boolean;
+}
+
+interface QuestionItem {
+  id: string;
+  question_id: string;
+  question: Question;
+  assignment_id: number;
+  category: string;
+}
+
+function encryptData(data: any) {
+  const cipher = crypto.createCipheriv("aes-256-cbc", ENCRYPTION_KEY, INI_VECTOR);
+  let encrypted = cipher.update(JSON.stringify(data), "utf8", "base64");
+  encrypted += cipher.final("base64");
+
+  return {
+    iv: INI_VECTOR.toString("base64"),
+    encryptedData: encrypted,
+  };
+}
+
+function processAndEncryptQuestions(questionsData: QuestionItem[]) {
+  return questionsData.map((questionRecord) => {
+    const { question, ...questionRecordMetadata } = questionRecord;
+    const encryptedQuestion = encryptData(question);
+
+    return {
+      ...questionRecordMetadata,
+      encryptedQuestion,
+    };
+  });
+}
 
 export default defineEndpoint((router, { services, logger }) => {
   const { ItemsService } = services;
@@ -170,23 +217,36 @@ export default defineEndpoint((router, { services, logger }) => {
       }
 
       const questionVersionsQuery = await questionVersionsService.readByQuery({
-        fields: ["id", "question_id"],
+        fields: ["id", "question", "image.id", "question_id.id", "question_id.category.title"],
         filter: {
           question_id: { _in: selectedQuestionIds },
         },
         sort: ["-date_created"],
       });
 
+      const formattedQuestions = questionVersionsQuery.map((q: any) => ({
+        id: q.id,
+        assignment_id: assignment_id,
+        question: q.question,
+        question_id: q.question_id.id,
+        image: q.image,
+        category: q.question_id.category?.title ?? "",
+      }));
+
       const latestVersionsMap = new Map();
-      for (const version of questionVersionsQuery) {
-        if (!latestVersionsMap.has(version.question_id)) {
-          latestVersionsMap.set(version.question_id, version.id);
+      const latestVersionsQuestionIdMap = new Map();
+      for (const version of formattedQuestions) {
+        const questionId = version?.question_id?.id || version?.question_id;
+        if (questionId && !latestVersionsMap.has(questionId)) {
+          latestVersionsMap.set(questionId, version);
+          latestVersionsQuestionIdMap.set(questionId, questionId);
         }
       }
 
-      const questionVersionsList = selectedQuestionIds.map((qId) => latestVersionsMap.get(qId)).filter(Boolean);
+      const latestVersions = Array.from(latestVersionsMap.values());
+      const latestVersionsQuestion = Array.from(latestVersionsQuestionIdMap.values());
 
-      if (!questionVersionsList.length) {
+      if (!latestVersions.length) {
         return res.status(400).json({ message: `Assignment ${assignment_id}. Question versions empty` });
       }
 
@@ -195,8 +255,8 @@ export default defineEndpoint((router, { services, logger }) => {
         payload = {
           status: CompetencyState.IN_PROGRESS,
           exam_versions_id: examVersion.id,
-          question_versions_list: questionVersionsList,
-          attempt_due: addMinutes(new Date(), questionVersionsList.length * 3),
+          question_versions_list: latestVersionsQuestion,
+          attempt_due: addMinutes(new Date(), latestVersionsQuestion.length * 3),
           started_on: new Date(),
         };
       } else {
@@ -204,7 +264,7 @@ export default defineEndpoint((router, { services, logger }) => {
           return res.status(400).json({ message: `Assignment ${assignment_id}. Max attempts reached` });
         }
 
-        const totalQuestions = questionVersionsList.length;
+        const totalQuestions = latestVersionsQuestion.length;
         const minutes = totalQuestions * 3;
         const addedMinutesDate = addMinutes(
           assignment.attempt_due ? new Date(assignment?.attempt_due) : new Date(Date.now()),
@@ -213,15 +273,19 @@ export default defineEndpoint((router, { services, logger }) => {
 
         payload = {
           attempt_due: addedMinutesDate,
-          question_versions_list: questionVersionsList,
+          question_versions_list: latestVersionsQuestion,
           exam_versions_id: assignment.exam_versions_id || examVersion.id,
         };
       }
 
       await assignmentService.updateOne(assignment_id, payload);
+
       return res.status(200).json({
         startedOn: payload.started_on ? parseISO(payload.started_on.toISOString()) : null,
         attemptDue: payload.attempt_due ? parseISO(payload.attempt_due.toISOString()) : null,
+        attempt: assignment?.attempts_used,
+        data: latestVersions,
+        exam: assignment,
       });
     } catch (e: any) {
       logger.error(`${LOG_PREFIX}: ${e.message || e}`);

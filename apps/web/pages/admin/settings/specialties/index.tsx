@@ -27,6 +27,7 @@ import { first } from "lodash";
 import { useCurrentOrGlobalAgency } from "../../../../hooks/useAgency";
 import { SpecialtiesFormModal } from "./SpecialtiesFormModal";
 import { useAuth } from "../../../../hooks/useAuth";
+import NotAuthorized from "../../../not-authorized";
 
 const PAGE_SIZE = 10;
 const ACCESSORS = {
@@ -166,6 +167,14 @@ function SpecialtieSettings() {
     onRowClick: (row) => handleEditSpecialtie(row),
     columns: columns,
   });
+
+  if (
+    auth.currentUser?.role === UserRole.UsersManager ||
+    auth.currentUser?.role === UserRole.CredentialingUser
+  ) {
+    return <NotAuthorized />;
+  }
+
   return (
     <AdminLayout>
       <h1 className="mb-6 text-2xl font-medium text-blue-800 sm:mb-12">

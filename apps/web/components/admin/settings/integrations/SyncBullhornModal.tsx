@@ -73,6 +73,14 @@ export default function SyncBullhornModal({
               leaveTo="opacity-0 scale-95"
             >
               <Dialog.Panel className="w-full max-w-2xl transform overflow-hidden rounded-2xl bg-white p-6 shadow-xl transition-all">
+                <button
+                  onClick={onClose}
+                  className="absolute right-4 top-4 rounded-full p-1 focus:outline-none"
+                  aria-label="Close"
+                >
+                  <span className="text-xl">&times;</span>
+                </button>
+
                 <Dialog.Title className="text-xl font-semibold">
                   {actionType === "syncToBH"
                     ? "Syncing Profiles to Bullhorn"

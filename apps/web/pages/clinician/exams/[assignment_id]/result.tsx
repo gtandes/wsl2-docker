@@ -15,7 +15,7 @@ import {
 import { CircularPercentage } from "../../../../components/CircularPercentage";
 import { SpecialtyHeader } from "../../../../components/SpecialtyHeader";
 import {
-  useGetUserExamAttemptQuery,
+  useGetUserExamAttemptForResultQuery,
   useGetUserExamsResultsByAttemptQuery,
   useGetUserExamQuery,
 } from "api/generated/graphql";
@@ -37,7 +37,7 @@ function ResultExam() {
   const { flags } = useFeatureFlags();
 
   const { data: dataUserExam, refetch: refetchUserExamAttempt } =
-    useGetUserExamAttemptQuery({
+    useGetUserExamAttemptForResultQuery({
       variables: {
         user: currentUser?.id as string,
         assignment_id: Number(assignment_id),
@@ -70,7 +70,6 @@ function ResultExam() {
   });
 
   const exam = userExam?.junction_directus_users_exams.at(0);
-  const examVersion = exam?.exams_id?.exam_versions?.at(0);
 
   const totalQuestions: number = Object.values(
     exam?.question_versions_list || []

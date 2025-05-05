@@ -11716,6 +11716,8 @@ fields:
             value: INVALID
           - text: Proctoring Review
             value: PROCTORING_REVIEW
+          - text: Failed Timed Out
+            value: FAILED_TIMED_OUT
       readonly: false
       required: true
       sort: 17

@@ -33,8 +33,4 @@ export const statusOptions = [
     label: "Invalid",
     value: CompetencyState.INVALID,
   },
-  {
-    label: "Failed Timed Out",
-    value: CompetencyState.FAILED_TIMED_OUT,
-  },
 ];

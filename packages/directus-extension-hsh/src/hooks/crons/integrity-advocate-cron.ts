@@ -1,7 +1,7 @@
 import { defineHook } from "@directus/extensions-sdk";
 import crypto from "crypto";
 import { CompetencyState } from "types";
-import { columnChanged } from "../../common/revisions";
+import { willColumnChangeTo } from "../../common/revisions";
 
 const LogPrefix = "INTEGRITY-ADVOCATE-CRON";
 const BASE_URL = "https://ca.integrityadvocateserver.com/api/2-0/participant";
@@ -283,9 +283,15 @@ export default defineHook(async ({ schedule }, context) => {
               continue;
             }
 
-            const changed = await columnChanged(revisionsService, "junction_directus_users_exams", id + "", "status");
+            const shouldUpdate = await willColumnChangeTo(
+              revisionsService,
+              "junction_directus_users_exams",
+              id + "",
+              "status",
+              updatedStatus,
+            );
 
-            if (!changed) {
+            if (!shouldUpdate) {
               logger.info(`${LogPrefix}: No status change for exam ${id}. Current status: ${updatedStatus}`);
               continue;
             }

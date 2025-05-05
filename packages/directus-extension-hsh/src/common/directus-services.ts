@@ -19,6 +19,7 @@ export class DirectusServices {
   public readonly agenciesService: any;
   public readonly userAgenciesService: any;
   public readonly userDirectusService: any;
+  public readonly featureFlagsService: any;
 
   private constructor(schema: SchemaOverview | null, knex: any, services: any, accountability?: Accountability | null) {
     this.mailService = new services.MailService({
@@ -86,6 +87,12 @@ export class DirectusServices {
       accountability,
     });
     this.userDirectusService = new services.UsersService({
+      schema,
+      knex,
+      accountability,
+    });
+
+    this.featureFlagsService = new services.ItemsService("feature_flags", {
       schema,
       knex,
       accountability,
