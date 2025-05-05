@@ -52,6 +52,7 @@ COPY packages/types/package.json ./packages/types/
 
 # 3. Install ALL dependencies for the workspace defined by pnpm-workspace.yaml
 #    This single install resolves workspace links correctly. Use --frozen-lockfile.
+RUN rm -rf /root/.pnpm-store
 RUN pnpm install --frozen-lockfile
 # Note: For production, consider "--prod" flag here in a multi-stage build
 
