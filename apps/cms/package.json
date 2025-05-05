@@ -31,10 +31,11 @@
     "directus-extension-hsh": "workspace:*",
     "directus-extension-data-migration": "workspace:*",
     "directus-extension-hook-sentry": "workspace:*",
-    "react": "^16.13.1",
+    "react": "18.2.0",
     "puppeteer": "^24.1.0"
   },
   "devDependencies": {
+    "@types/react": "18.2.9",
     "@types/node": "20.2.5",
     "@types/pg": "8.10.2"
   }
