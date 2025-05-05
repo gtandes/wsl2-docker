@@ -1,10 +1,9 @@
-# apps/cms/Dockerfile (REVISED STRUCTURE v6 - Fixing pnpm install in Stage 1)
+# apps/cms/Dockerfile (Corrected v6 Structure)
 
 # --- Stage 1: Install Deps & Prepare Deployment ---
-    FROM node:18-alpine AS builder # Add alias "builder" to the stage
+    FROM node:18-alpine AS builder
 
     # Install base dependencies needed for pnpm install & building extensions
-    # (Only add build tools here, not runtime deps like chromium)
     RUN apk update && apk add --no-cache \
         libc6-compat \
         python3 \
@@ -74,7 +73,6 @@
     WORKDIR /app/apps/cms # Match the deploy target structure
     
     # Copy the deployed application files from the build stage
-    # Use the stage alias "builder" defined in the first FROM line
     COPY --from=builder /app_deploy/apps/cms /app/apps/cms
     
     # Use the simplified start command
