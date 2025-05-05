@@ -47,9 +47,9 @@ services:
       - $CMS_PORT:$CMS_PORT
     env_file:
       - ./.env
-    environment:
+    # environment:
       # Add this line to force disable extensions by pointing to a non-existent path
-      EXTENSIONS_PATH: ./no_extensions_during_install
+      # EXTENSIONS_PATH: ./no_extensions_during_install
     depends_on:
       db:
         condition: service_healthy
@@ -58,25 +58,6 @@ services:
       timeout: 20s
       interval: 10s
       retries: 10
-
-  # lrs:
-  #   container_name: hsh_lrs
-  #   build:
-  #     context: ./apps/lrs/Dockerfile
-  #     dockerfile: Dockerfile
-  #   restart: on-failure
-  #   # ports:
-  #   #   - 8366:8080
-  #   env_file:
-  #     - ./.env
-  #   depends_on:
-  #     db:
-  #       condition: service_healthy
-  #   healthcheck:
-  #     test: wget --no-verbose --tries=1 --spider http://localhost:8366/admin/index.html || exit 1
-  #     timeout: 20s
-  #     interval: 10s
-  #     retries: 10
 
 # Define a network, which allows containers to communicate
 # with each other, by using their container name as a hostname
